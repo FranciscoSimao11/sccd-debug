@@ -11,7 +11,7 @@ To compile a conforming SCCDXML file, the provided Python compiler can be used:
 ```sh
 $python -m sccd.compiler.sccdc --help
 usage: python -m sccd.compiler.sccdc [-h] [-o OUTPUT] [-v VERBOSE]
-                                     [-p PLATFORM] [-l LANGUAGE]
+                                     [-p PLATFORM] [-l LANGUAGE] [-d DEBUG]
                                      input
 
 positional arguments:
@@ -31,6 +31,8 @@ optional arguments:
   -l LANGUAGE, --language LANGUAGE
                         Target language, either "javascript" or "python".
                         Defaults to the latter.
+  -d DEBUG, --debug DEBUG
+                        1 = Debug mode on; 0 = Debug mode off. Defaults to 0.
 ```
 
 The Threads Platform

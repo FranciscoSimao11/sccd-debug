@@ -70,7 +70,7 @@ def main():
 	parser.add_argument('-v', '--verbose', type=int, help='2 = all output; 1 = only warnings and errors; 0 = only errors; -1 = no output.  Defaults to 2.', default = 2)
 	parser.add_argument('-p', '--platform', type=str, help="Let the compiled code run on top of threads, gameloop or eventloop. The default is eventloop.")
 	parser.add_argument('-l', '--language', type=str, help='Target language, either "javascript" or "python". Defaults to the latter.')
-	parser.add_argument('-d', '--debug', type=int, help='1 = Debug mode on; 0 = Debug mode off', default=0)	
+	parser.add_argument('-d', '--debug', type=int, help='1 = Debug mode on; 0 = Debug mode off. Defaults to 0.', default=0)	
  
 	args = vars(parser.parse_args())
 	#Set verbose
