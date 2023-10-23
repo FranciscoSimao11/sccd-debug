@@ -34,24 +34,20 @@ class MainApp(RuntimeClassBase):
         args = vars(parser.parse_args())
         
         if args['simType'] is not None:
-            args['simType'] = float(args['simType'])
-            args['factor'] = float(args['factor'])
-            if args['simType'] == 0:
-                print("Real-time Simulation")
-                self.scaleFactor = 1.0
-            elif args['simType'] == 1:
-                print("Scaled Real-time Simulation")
-                if args['factor'] is not None and args['factor'] > 0:
-                    self.scaleFactor = args['factor']
-            elif args['simType'] == 2:
-                print("As-fast-as-possible Simulation")
-                self.scaleFactor = float('inf')
-            else:
-                print("Invalid simulation type. Defaulting to Real-time Simulation")
-                self.scaleFactor = 1.0
-                
-        print("Scale Factor: {}".format(self.scaleFactor))
-    
+                if args['simType'] is 0:
+                    print("Real-time Simulation")
+                    self.scaleFactor = 1
+                if args['simType'] is 1:
+                    print("As-fast-as-possible Simulation")
+                    self.scaleFactor = float('inf')
+                if args['simType'] is 2:
+                    print("Scaled Real-time Simulation")
+                    if args['factor'] is not None and args['factor'].isNumeric() and args['factor'] > 0:
+                        self.scaleFactor = args['factor']
+                else:
+                    print("Invalid simulation type. Defaulting to Real-time Simulation")
+                    self.scaleFactor = 1
+        
         # build Statechart structure
         self.build_statechart_structure()
         
@@ -150,10 +146,10 @@ class MainApp(RuntimeClassBase):
         self.startTime = self.getSimulatedTime()
         if self.debugFlag == False:
             self.increment_counter();
-            self.addTimer(0, 10/self.scaleFactor)
+            self.addTimer(0, 10 / self.scaleFactor)
         else:
             self.debugFlag = False
-            self.addTimer(0, self.timeDiff/self.scaleFactor)
+            self.addTimer(0, 10 - (self.timeDiff / self.scaleFactor))
     
     def _state_A_exit(self):
         self.removeTimer(0)
@@ -173,7 +169,7 @@ class MainApp(RuntimeClassBase):
             pass
     
     def _state_Debug_enter(self):
-        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000)
+        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
         self.debugFlag = True
         print("DEBUG MODE")
         print("Current State: ", self.current_state.name)

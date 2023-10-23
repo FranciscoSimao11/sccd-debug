@@ -843,7 +843,7 @@ class GenericGenerator(Visitor):
                                             GLC.SelfProperty(
                                             "getSimulatedTime")),
                                         GLC.SelfProperty("startTime")
-                                        ), "1000")
+                                        ), "1000.0")
                                     )
             self.writer.addAssignment(GLC.SelfProperty("debugFlag"), "True")
             
@@ -975,24 +975,21 @@ class GenericGenerator(Visitor):
                 self.writer.startRecordingExpression()
                 trigger.after.accept(self)
                 after = self.writer.stopRecordingExpression()
-                #if self.debug_mode == 1:
-                self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(trigger.getAfterIndex()), after]))
+                self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(trigger.getAfterIndex()), GLC.DivisionExpression(after, GLC.SelfProperty("scaleFactor"))]))
 
         if self.debug_mode == 1:
             self.writer.endElseIf()
             self.writer.beginElse()
             self.writer.addAssignment(GLC.SelfProperty("debugFlag"), "False")
             
-        for transition in parent_node.transitions :
-            trigger = transition.getTrigger()
-            if trigger.isAfter() :
-                self.writer.startRecordingExpression()
-                trigger.after.accept(self)
-                after = self.writer.stopRecordingExpression()
-                if self.debug_mode == 1:
-                    self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(trigger.getAfterIndex()), GLC.SelfProperty("timeDiff")]))
+            for transition in parent_node.transitions :
+                trigger = transition.getTrigger()
+                if trigger.isAfter() :
+                    self.writer.startRecordingExpression()
+                    trigger.after.accept(self)
+                    after = self.writer.stopRecordingExpression()
+                    self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(trigger.getAfterIndex()), GLC.MinusExpression(after,GLC.DivisionExpression(GLC.SelfProperty("timeDiff"), GLC.SelfProperty("scaleFactor")))]))
         
-        if self.debug_mode == 1:
             self.writer.endElse()        
         
         self.writer.endMethodBody()

@@ -158,10 +158,10 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/running"]
         self.startTime = self.getSimulatedTime()
         if self.debugFlag == False:
-            self.addTimer(0, 0.05)
+            self.addTimer(0, 0.05 / self.scaleFactor)
         else:
             self.debugFlag = False
-            self.addTimer(0, self.timeDiff)
+            self.addTimer(0, 0.05 - (self.timeDiff / self.scaleFactor))
     
     def _running_exit(self):
         self.removeTimer(0)
@@ -181,7 +181,7 @@ class MainApp(RuntimeClassBase):
             pass
     
     def _state_Debug_enter(self):
-        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000)
+        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
         self.debugFlag = True
         print("DEBUG MODE")
         print("Current State: ", self.current_state.name)
