@@ -15,7 +15,7 @@ if __name__ == '__main__':
     output_listener = controller.addOutputListener(["output"])
     def outputter():
         while 1:
-            print output_listener.fetch(-1)
+            print (output_listener.fetch(-1))
     output_thread = threading.Thread(target=outputter)
     output_thread.daemon = True
     output_thread.start()

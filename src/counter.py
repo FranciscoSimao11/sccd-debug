@@ -6,7 +6,8 @@ Model name:   Counter
 
 """
 
-from sccd.runtime.statecharts_core import *
+from python_sccd.python_sccd_runtime.statecharts_core import *
+import argparse
 from sccd.runtime.libs.ui import ui
 import sccd.runtime.accurate_time
 
@@ -23,14 +24,45 @@ class MainApp(RuntimeClassBase):
         self.semantics.priority = StatechartSemantics.SourceParent
         self.semantics.concurrency = StatechartSemantics.Single
         
+        self.debugFlag = False
+        self.startTime = 0
+        self.timeDiff = 0
+        
+        parser = argparse.ArgumentParser(prog="python -m sccd.compiler.sccdc")
+        parser.add_argument('-s','--simType', help='Simulation type which has 3 different variations: 0 = default simulation, scale factor of 1; 1 = scaled real-time simulation, takes one extra arg to set the scale factor; 2 = as-fast-as-possible simulation, scale factor = infinity', default=0)
+        parser.add_argument('-f','--factor', help='Scale factor: default value is 1; if the factor is 2, the simulation 2x faster', default=1)
+        args = vars(parser.parse_args())
+        
+        if args['simType'] is not None:
+            args['simType'] = float(args['simType'])
+            args['factor'] = float(args['factor'])
+            if args['simType'] == 0:
+                print("Real-time Simulation")
+                self.scaleFactor = 1.0
+            elif args['simType'] == 1:
+                print("Scaled Real-time Simulation")
+                if args['factor'] is not None and args['factor'] > 0:
+                    self.scaleFactor = args['factor']
+            elif args['simType'] == 2:
+                print("As-fast-as-possible Simulation")
+                self.scaleFactor = float('inf')
+            else:
+                print("Invalid simulation type. Defaulting to Real-time Simulation")
+                self.scaleFactor = 1.0
+                
+        print("Scale Factor: {}".format(self.scaleFactor))
+    
         # build Statechart structure
         self.build_statechart_structure()
+        
+        # user defined attributes
+        self.counter = 0
         
         # call user defined constructor
         MainApp.user_defined_constructor(self)
     
     def user_defined_constructor(self):
-        self.counter = 0
+        pass
     
     def user_defined_destructor(self):
         pass
@@ -38,6 +70,7 @@ class MainApp(RuntimeClassBase):
     
     # user defined method
     def increment_counter(self):
+        print(self.current_state.name)
         self.counter = self.counter + 1
         print ("counter: ", self.counter)
     
@@ -56,10 +89,23 @@ class MainApp(RuntimeClassBase):
         # state /state_B
         self.states["/state_B"] = State(2, "/state_B", self)
         self.states["/state_B"].setEnter(self._state_B_enter)
+        self.states["/state_B"].setExit(self._state_B_exit)
+        
+        # state /state_Debug
+        self.states["/state_Debug"] = State(3, "/state_Debug", self)
+        self.states["/state_Debug"].setEnter(self._state_Debug_enter)
+        
+        # debug events
+        pauseEvent = Event("pause", self.getInPortName("input"))
+        continueEvent = Event("continue", self.getInPortName("input"))
+        
+        # debug transitions
+        self.pauseTransitions = {}
         
         # add children
         self.states[""].addChild(self.states["/state_A"])
         self.states[""].addChild(self.states["/state_B"])
+        self.states[""].addChild(self.states["/state_Debug"])
         self.states[""].fixTree()
         self.states[""].default_state = self.states["/state_A"]
         
@@ -72,16 +118,72 @@ class MainApp(RuntimeClassBase):
         _state_B_0 = Transition(self, self.states["/state_B"], [self.states["/state_A"]])
         _state_B_0.setTrigger(Event("move", self.getInPortName("input")))
         self.states["/state_B"].addTransition(_state_B_0)
+        
+        # transitions /state_Debug
+        # to /state_Debug
+        _state_A_to_state_Debug = Transition(self, self.states["/state_A"], [self.states["/state_Debug"]])
+        _state_A_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/state_A"].addTransition(_state_A_to_state_Debug)
+        self.pauseTransitions["/state_A"] = _state_A_to_state_Debug
+        
+        # from /state_Debug
+        _state_Debug_to_state_A = Transition(self, self.states["/state_Debug"], [self.states["/state_A"]])
+        _state_Debug_to_state_A.setTrigger(continueEvent)
+        _state_Debug_to_state_A.setGuard(self.continueGuard_state_A)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_state_A)
+        
+        # to /state_Debug
+        _state_B_to_state_Debug = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
+        _state_B_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/state_B"].addTransition(_state_B_to_state_Debug)
+        self.pauseTransitions["/state_B"] = _state_B_to_state_Debug
+        
+        # from /state_Debug
+        _state_Debug_to_state_B = Transition(self, self.states["/state_Debug"], [self.states["/state_B"]])
+        _state_Debug_to_state_B.setTrigger(continueEvent)
+        _state_Debug_to_state_B.setGuard(self.continueGuard_state_B)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_state_B)
+        
     
     def _state_A_enter(self):
-        self.increment_counter();
-        self.addTimer(0, 10)
+        self.current_state = self.states["/state_A"]
+        self.startTime = self.getSimulatedTime()
+        if self.debugFlag == False:
+            self.increment_counter();
+            self.addTimer(0, 10/self.scaleFactor)
+        else:
+            self.debugFlag = False
+            self.addTimer(0, self.timeDiff/self.scaleFactor)
     
     def _state_A_exit(self):
         self.removeTimer(0)
+        if self.pauseTransitions["/state_A"].enabled_event == None:
+            self.increment_counter();
     
     def _state_B_enter(self):
-        self.increment_counter();
+        self.current_state = self.states["/state_B"]
+        self.startTime = self.getSimulatedTime()
+        if self.debugFlag == False:
+            self.increment_counter();
+        else:
+            self.debugFlag = False
+    
+    def _state_B_exit(self):
+        if self.pauseTransitions["/state_B"].enabled_event == None:
+            pass
+    
+    def _state_Debug_enter(self):
+        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000)
+        self.debugFlag = True
+        print("DEBUG MODE")
+        print("Current State: ", self.current_state.name)
+        print("counter: ", self.counter)
+    
+    def continueGuard_state_A(self, parameters):
+        return self.current_state == self.states["/state_A"]
+    
+    def continueGuard_state_B(self, parameters):
+        return self.current_state == self.states["/state_B"]
     
     def initializeStatechart(self):
         # enter default state

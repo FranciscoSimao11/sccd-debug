@@ -615,6 +615,10 @@ class EventLoop:
     def bind_controller(self, controller):
         pass
 
+class DebugControllerBase(ObjectManagerBase):
+    def __init__(self, controller):
+        ObjectManagerBase.__init__(self, controller)
+    
 class EventLoopControllerBase(ControllerBase):
     def __init__(self, object_manager, event_loop, finished_callback = None, behind_schedule_callback = None):
         ControllerBase.__init__(self, object_manager)
@@ -842,7 +846,7 @@ class State:
         self.exit = exit
                     
     def __repr__(self):
-        return "State(%s)" % (self.state_id)
+        return ("State(%s) {}" % (self.state_id)).format(self.name)
         
 class HistoryState(State):
     def __init__(self, state_id, name, obj):
@@ -1076,6 +1080,7 @@ class RuntimeClassBase(object):
         return self.controller.getWallClockTime()
     
     def updateConfiguration(self, states):
+        #print(states)
         self.configuration.extend(states)
         self.configuration_bitmap = sum([2**s.state_id for s in states])
     

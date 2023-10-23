@@ -1,5 +1,5 @@
 class Visitor(object):
-	def _visit(self, node, prepend, *args):
+	def _visit(self, node, prepend, *args): #this node is visited
 		prepend = prepend + "_"
 		meth = None
 		for cls in node.__class__.__mro__:

@@ -43,3 +43,6 @@ class EventQueue(object):
                 del self.event_time_numbers[event_time]
             if item not in self.removed:
                 return item[2]
+            
+    #def showHead(self):
+        

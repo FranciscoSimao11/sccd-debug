@@ -9,4 +9,5 @@ if __name__ == '__main__':
 
 	controller = timer.Controller(TkEventLoop(ui.window))
 	controller.start()
+	#controller.run()
 	ui.window.mainloop()

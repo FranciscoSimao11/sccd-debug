@@ -356,9 +356,10 @@ class Assign(SubAction):
 class Action(Visitable):
     def __init__(self, xml_element):
         self.sub_actions = []
-        for subaction in list(xml_element) :
-            if subaction.tag not in ["parameter"] :      
-                self.sub_actions.append(SubAction.create(subaction))
+        if xml_element is not None:
+            for subaction in list(xml_element) :
+                if subaction.tag not in ["parameter"] :      
+                    self.sub_actions.append(SubAction.create(subaction))
             
     def accept(self, visitor):
         for subaction in self.sub_actions :
@@ -428,7 +429,7 @@ class EnterExitAction(Visitable):
         if xml_element is not None:
             self.action = Action(xml_element)
         else :
-            self.action = None
+            self.action = Action(None)
         
 class EnterAction(EnterExitAction):
     def __init__(self, parent_node, xml_element = None):

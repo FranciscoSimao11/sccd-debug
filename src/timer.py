@@ -6,7 +6,8 @@ Model name:   Timer (Eventloop Version)
 
 """
 
-from sccd.runtime.statecharts_core import *
+from python_sccd.python_sccd_runtime.statecharts_core import *
+import argparse
 from sccd.runtime.libs.ui import ui
 import sccd.runtime.accurate_time
 
@@ -22,6 +23,30 @@ class MainApp(RuntimeClassBase):
         self.semantics.input_event_lifeline = StatechartSemantics.FirstComboStep
         self.semantics.priority = StatechartSemantics.SourceParent
         self.semantics.concurrency = StatechartSemantics.Single
+        
+        self.debugFlag = False
+        self.startTime = 0
+        self.timeDiff = 0
+        
+        parser = argparse.ArgumentParser(prog="python -m sccd.compiler.sccdc")
+        parser.add_argument('-s','--simType', help='Simulation type which has 3 different variations: 0 = default simulation, scale factor of 1; 1 = scaled real-time simulation, takes one extra arg to set the scale factor; 2 = as-fast-as-possible simulation, scale factor = infinity', default=0)
+        parser.add_argument('-f','--factor', help='Scale factor: default value is 1; if the factor is 2, the simulation 2x faster', default=1)
+        args = vars(parser.parse_args())
+        
+        if args['simType'] is not None:
+                if args['simType'] is 0:
+                    print("Real-time Simulation")
+                    self.scaleFactor = 1
+                if args['simType'] is 1:
+                    print("As-fast-as-possible Simulation")
+                    self.scaleFactor = float('inf')
+                if args['simType'] is 2:
+                    print("Scaled Real-time Simulation")
+                    if args['factor'] is not None and args['factor'].isNumeric() and args['factor'] > 0:
+                        self.scaleFactor = args['factor']
+                else:
+                    print("Invalid simulation type. Defaulting to Real-time Simulation")
+                    self.scaleFactor = 1
         
         # build Statechart structure
         self.build_statechart_structure()
@@ -44,6 +69,7 @@ class MainApp(RuntimeClassBase):
     
     # user defined method
     def update_timers(self):
+        print(self.current_state.name)
         self.canvas.element.itemconfigure(self.clock_text, text=str('%.2f' % (self.getSimulatedTime() / 1000.0)))
         self.canvas.element.itemconfigure(self.actual_clock_text, text='%.2f' % (time() / 1000.0))
     
@@ -61,10 +87,24 @@ class MainApp(RuntimeClassBase):
         
         # state /interrupted
         self.states["/interrupted"] = State(2, "/interrupted", self)
+        self.states["/interrupted"].setEnter(self._interrupted_enter)
+        self.states["/interrupted"].setExit(self._interrupted_exit)
+        
+        # state /state_Debug
+        self.states["/state_Debug"] = State(3, "/state_Debug", self)
+        self.states["/state_Debug"].setEnter(self._state_Debug_enter)
+        
+        # debug events
+        pauseEvent = Event("pause", self.getInPortName("input"))
+        continueEvent = Event("continue", self.getInPortName("input"))
+        
+        # debug transitions
+        self.pauseTransitions = {}
         
         # add children
         self.states[""].addChild(self.states["/running"])
         self.states[""].addChild(self.states["/interrupted"])
+        self.states[""].addChild(self.states["/state_Debug"])
         self.states[""].fixTree()
         self.states[""].default_state = self.states["/running"]
         
@@ -87,12 +127,64 @@ class MainApp(RuntimeClassBase):
         _interrupted_1.setAction(self._interrupted_1_exec)
         _interrupted_1.setTrigger(Event("continue_clicked", self.getInPortName("ui")))
         self.states["/interrupted"].addTransition(_interrupted_1)
+        
+        # transitions /state_Debug
+        # to /state_Debug
+        _running_to_state_Debug = Transition(self, self.states["/running"], [self.states["/state_Debug"]])
+        _running_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/running"].addTransition(_running_to_state_Debug)
+        self.pauseTransitions["/running"] = _running_to_state_Debug
+        
+        # from /state_Debug
+        _state_Debug_to_running = Transition(self, self.states["/state_Debug"], [self.states["/running"]])
+        _state_Debug_to_running.setTrigger(continueEvent)
+        _state_Debug_to_running.setGuard(self.continueGuard_running)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_running)
+        
+        # to /state_Debug
+        _interrupted_to_state_Debug = Transition(self, self.states["/interrupted"], [self.states["/state_Debug"]])
+        _interrupted_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/interrupted"].addTransition(_interrupted_to_state_Debug)
+        self.pauseTransitions["/interrupted"] = _interrupted_to_state_Debug
+        
+        # from /state_Debug
+        _state_Debug_to_interrupted = Transition(self, self.states["/state_Debug"], [self.states["/interrupted"]])
+        _state_Debug_to_interrupted.setTrigger(continueEvent)
+        _state_Debug_to_interrupted.setGuard(self.continueGuard_interrupted)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_interrupted)
+        
     
     def _running_enter(self):
-        self.addTimer(0, 0.05)
+        self.current_state = self.states["/running"]
+        self.startTime = self.getSimulatedTime()
+        if self.debugFlag == False:
+            self.addTimer(0, 0.05)
+        else:
+            self.debugFlag = False
+            self.addTimer(0, self.timeDiff)
     
     def _running_exit(self):
         self.removeTimer(0)
+        if self.pauseTransitions["/running"].enabled_event == None:
+            pass
+    
+    def _interrupted_enter(self):
+        self.current_state = self.states["/interrupted"]
+        self.startTime = self.getSimulatedTime()
+        if self.debugFlag == False:
+            pass
+        else:
+            self.debugFlag = False
+    
+    def _interrupted_exit(self):
+        if self.pauseTransitions["/interrupted"].enabled_event == None:
+            pass
+    
+    def _state_Debug_enter(self):
+        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000)
+        self.debugFlag = True
+        print("DEBUG MODE")
+        print("Current State: ", self.current_state.name)
     
     def _running_0_exec(self, parameters):
         self.update_timers()
@@ -105,6 +197,12 @@ class MainApp(RuntimeClassBase):
     
     def _interrupted_1_exec(self, parameters):
         self.update_timers()
+    
+    def continueGuard_running(self, parameters):
+        return self.current_state == self.states["/running"]
+    
+    def continueGuard_interrupted(self, parameters):
+        return self.current_state == self.states["/interrupted"]
     
     def initializeStatechart(self):
         # enter default state

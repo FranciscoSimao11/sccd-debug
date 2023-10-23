@@ -14,7 +14,7 @@ from sccd.compiler.compiler_exceptions import CompilerException
 from sccd.compiler.javascript_writer import JavascriptWriter
 from sccd.compiler.python_writer import PythonWriter
 
-def generate(input_file, output_file, target_language, platform):
+def generate(input_file, output_file, target_language, platform, debug_mode):
 	sccd = xmlToSccd(input_file)
 	if not target_language:
 		if sccd.language:
@@ -30,7 +30,7 @@ def generate(input_file, output_file, target_language, platform):
 	elif target_language == "javascript" and not output_file.endswith(".js") :
 		output_file += ".js"
 
-	generic = sccdToGeneric(sccd, platform)
+	generic = sccdToGeneric(sccd, platform, debug_mode)
 	genericToTarget(generic, target_language, output_file)
 
 def xmlToSccd(xml_file):
@@ -41,9 +41,9 @@ def xmlToSccd(xml_file):
 	PathCalculator().visit(cd) # visitor calculating paths
 	return cd
 	
-def sccdToGeneric(sccd, platform):
-	succesfull_generation = False
-	generator = GenericGenerator(platform)
+def sccdToGeneric(sccd, platform, debug_mode):
+	successful_generation = False
+	generator = GenericGenerator(platform, debug_mode)
 	sccd.accept(generator) #important
 	generic = generator.get()
 	Logger.showInfo("Classes <" + ", ".join(sccd.class_names) + "> have been converted to generic language constructs.")
@@ -70,7 +70,8 @@ def main():
 	parser.add_argument('-v', '--verbose', type=int, help='2 = all output; 1 = only warnings and errors; 0 = only errors; -1 = no output.  Defaults to 2.', default = 2)
 	parser.add_argument('-p', '--platform', type=str, help="Let the compiled code run on top of threads, gameloop or eventloop. The default is eventloop.")
 	parser.add_argument('-l', '--language', type=str, help='Target language, either "javascript" or "python". Defaults to the latter.')
-	
+	parser.add_argument('-d', '--debug', type=int, help='1 = Debug mode on; 0 = Debug mode off', default=0)	
+ 
 	args = vars(parser.parse_args())
 	#Set verbose
 	if args['verbose'] is not None:
@@ -113,10 +114,16 @@ def main():
 			return		  
 	else :
 		platform = Platforms.EventLoop
+  
+	#Set debug mode
+	if args['debug']:
+		debug_mode =  args['debug']
+	else:
+		debug_mode = 0
 		
 	#Compile	
 	try :
-		generate(source, output, target_language, platform)
+		generate(source, output, target_language, platform, debug_mode)
 	except CompilerException as exception :
 		Logger.showError(str(exception));
 		return 1

@@ -7,10 +7,11 @@
         import sccd.runtime.accurate_time
     </top>
     <class name="MainApp" default="true">
+        <attribute name="counter" type="number" init-value="0"/>
         <method name="MainApp">
             <body>
                 <![CDATA[
-                self.counter = 0
+                
                 ]]>
             </body>
         </method>
@@ -27,6 +28,11 @@
                         self.increment_counter();
                     </script>
                 </onentry>
+                <onexit>
+                    <script>
+                        self.increment_counter();
+                    </script>
+                </onexit>
                 <transition target="../state_B" after="10" />
             </state>
             <state id="state_B">

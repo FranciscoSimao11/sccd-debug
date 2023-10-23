@@ -23,7 +23,6 @@ class StatefulWriter:
 		self.stack = [self.ast]
 
 	def get(self):
-		print(self.stack[-1])
 		return self.stack[-1]
 
 	def startRecordingExpression(self):

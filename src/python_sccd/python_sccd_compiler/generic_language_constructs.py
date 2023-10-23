@@ -568,6 +568,20 @@ class ProductOperator(Operator):
 class AdditionOperator(Operator):
 	pass
 
+class MinusOperator(Operator):
+	pass
+
+class DivisionOperator(Operator):
+	pass
+
+class DifferentOperator(Operator):
+    pass
+
+class LogicNotOperator(Operator):
+    pass
+
+class LogicAndOperator(Operator):
+    pass
 
 class UnaryExpression(CompoundExpression):
 	def __init__(self, operator, expr):
@@ -633,6 +647,25 @@ class AdditionExpression(BinaryExpression):
 	def __init__(self, lexpr = None, rexpr = None):
 		BinaryExpression.__init__(self, lexpr, AdditionOperator(), rexpr)
 
+class MinusExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, MinusOperator(), rexpr)
+
+class DivisionExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, DivisionOperator(), rexpr)
+  
+class DifferentExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, DifferentOperator(), rexpr)
+  
+class LogicNotExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, LogicNotOperator(), rexpr)
+
+class LogicAndExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, LogicAndOperator(), rexpr)
 
 class FalseExpression(SimpleExpression):
 	pass
@@ -890,6 +923,15 @@ class GenericWriterBase(Visitor):
 	def visit_AdditionOperator(self, p):
 		self.out.extendWrite(" + ")
 
+	def visit_MinusOperator(self, p):
+		self.out.extendWrite(" - ")
+
+	def visit_DivisionOperator(self, p):
+		self.out.extendWrite(" / ")
+  
+	def visit_DifferentOperator(self, p):
+		self.out.extendWrite(" != ")
+  
 	def visit_Property(self, p):
 		owner = p.getOwnerExpression()
 		prop = p.getProperty()
@@ -1002,5 +1044,12 @@ class CLikeWriterBase(GenericWriterBase):
 
 	def visit_TrueExpression(self, t):
 		self.out.extendWrite("true")
+  
+	def visit_LogicAndOperator(self, o):
+		self.out.extendWrite(" and ")
 
+	def visit_LogicNotOperator(self, o):
+		self.out.extendWrite(" not ")
 
+	def visit_DifferentOperator(self, o):
+		self.out.extendWrite(" != ")

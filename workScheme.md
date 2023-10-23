@@ -57,6 +57,6 @@ QUESTIONS
 - line 444 - sccd constructs, why is parent passed as None? Is it just none if it's not passed?
 - Subactions, a bit confusing? Expressions?
 - maybe some better explanation of state linker, path calculator and super class linker would be useful
-- i'm a bit confused on same aspects, particularly the visitor functions/classes and the conversion from the class diagram to the generic and the generic to the target language
+- i'm a bit confused on some aspects, particularly the visitor functions/classes and the conversion from the class diagram to the generic and the generic to the target language
 
 - how can i test my changes? i need to run the setup and install everytime I want to see the changes, why is that? also I also cant generate the same file I have just generated unless I change its name or delete the previous one. //update: i made a small script to install everytime i want to test changes but it seems a bit silly to do this 
