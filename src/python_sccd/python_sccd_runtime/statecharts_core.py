@@ -23,7 +23,7 @@ except ImportError:
 try:
     from queue import Queue, Empty
 except ImportError:
-    from Queue import Queue, Empty
+    from Queue import Queue, Empty, LifoQueue
 
 from sccd.runtime.event_queue import EventQueue
 from sccd.runtime.accurate_time import AccurateTime
@@ -126,7 +126,7 @@ class Association(object):
 # TODO: Clean this mess up. Look at all object management operations and see how they can be improved.
 class ObjectManagerBase(object):
     __metaclass__  = abc.ABCMeta
-    
+
     def __init__(self, controller):
         self.controller = controller
         self.events = EventQueue()
@@ -528,6 +528,7 @@ class ControllerBase(object):
             input_event_list = [input_event_list]
 
         for e in input_event_list:
+
             if e.getName() == "":
                 raise InputException("Input event can't have an empty name.")
         
@@ -614,10 +615,6 @@ class EventLoop:
 
     def bind_controller(self, controller):
         pass
-
-class DebugControllerBase(ObjectManagerBase):
-    def __init__(self, controller):
-        ObjectManagerBase.__init__(self, controller)
     
 class EventLoopControllerBase(ControllerBase):
     def __init__(self, object_manager, event_loop, finished_callback = None, behind_schedule_callback = None):
@@ -912,6 +909,9 @@ class Transition:
     # @profile
     def fire(self):
         # exit states...
+        #print("Press Enter to perform a step")
+        #raw_input()
+        #print("firing")
         exit_set = self.__exitSet()
         for s in exit_set:
             # remember which state(s) we were in if a history state is present
@@ -1053,6 +1053,8 @@ class RuntimeClassBase(object):
         self.active = True
         
         self.current_state = {}
+        self.current_states = LifoQueue()
+        #self.current_states.
         self.history_values = {}
         self.timers = {}
         self.timers_to_add = {}
@@ -1126,6 +1128,7 @@ class RuntimeClassBase(object):
                 heappush(self.controller.object_manager.instance_times, (self.earliest_event_time, self))
 
     def step(self):
+        #raw_input("Press Enter to step\n")
         is_stable = False
         while not is_stable:
             due = []
@@ -1149,6 +1152,7 @@ class RuntimeClassBase(object):
         return True
 
     def bigStep(self, input_events):
+        #print("big-step")
         self.big_step.next(input_events)
         self.small_step.reset()
         self.combo_step.reset()
@@ -1159,6 +1163,7 @@ class RuntimeClassBase(object):
         return self.big_step.has_stepped
 
     def comboStep(self):
+        #print("combo-step")
         self.combo_step.next()
         while self.smallStep():
             self.combo_step.has_stepped = True
@@ -1182,7 +1187,8 @@ class RuntimeClassBase(object):
         return enabledTransitions
 
     # @profile
-    def smallStep(self):        
+    def smallStep(self):
+        #print("small-step")        
         def __younger_than(x, y):
             if x.source in y.source.ancestors:
                 return 1
@@ -1250,7 +1256,7 @@ class RuntimeClassBase(object):
         if self.eventless_states:
             self.controller.object_manager.eventless.add(self)
         
-
+        
 class BigStepState(object):
     def __init__(self):
         self.input_events = [] # input events received from environment before beginning of big step (e.g. from object manager, from input port)
@@ -1269,7 +1275,6 @@ class BigStepState(object):
 
     def outputEventOM(self, event):
         self.output_events_om.append(event)
-
 
 class ComboStepState(object):
     def __init__(self):
@@ -1290,7 +1295,6 @@ class ComboStepState(object):
 
     def addNextEvent(self, event):
         self.next_events.append(event)
-
 
 class SmallStepState(object):
     def __init__(self):
@@ -1318,3 +1322,7 @@ class SmallStepState(object):
     def hasCandidates(self):
         return len(self.candidates) > 0
 
+class Breakpoint(object):
+    def __init__(self, location_state):
+        self.location_state = location_state
+    

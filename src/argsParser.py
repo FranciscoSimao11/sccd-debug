@@ -4,16 +4,19 @@ parser.add_argument('-f','--factor', help='Scale factor: default value is 1; if 
 args = vars(parser.parse_args())
 
 if args['simType'] is not None:
-        if args['simType'] is 0:
-            print("Real-time Simulation")
-            self.scaleFactor = 1
-        if args['simType'] is 1:
-            print("As-fast-as-possible Simulation")
-            self.scaleFactor = float('inf')
-        if args['simType'] is 2:
-            print("Scaled Real-time Simulation")
-            if args['factor'] is not None and args['factor'].isNumeric() and args['factor'] > 0:
-                self.scaleFactor = args['factor']
-        else:
-            print("Invalid simulation type. Defaulting to Real-time Simulation")
-            self.scaleFactor = 1
+    args['simType'] = float(args['simType'])
+    args['factor'] = float(args['factor'])
+    if args['simType'] == 0:
+        print("Real-time Simulation")
+        self.scaleFactor = 1.0
+    elif args['simType'] == 1:
+        print("Scaled Real-time Simulation")
+        if args['factor'] is not None and args['factor'] > 0:
+            self.scaleFactor = args['factor']
+    elif args['simType'] == 2:
+        print("As-fast-as-possible Simulation")
+        self.scaleFactor = float('inf')
+    else:
+        print("Invalid simulation type. Defaulting to Real-time Simulation")
+        self.scaleFactor = 1.0
+    print("Scale Factor: {}".format(self.scaleFactor))

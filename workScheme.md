@@ -49,3 +49,33 @@ path calculator - visitor calculating paths
 (genericToTarget)
 
 - from the generic class, the code will be written to a file in target language
+
+
+Statechart execution
+
+- enter state (action)
+- event/timer
+fire - exit state (action)
+fire - transition (action)
+fire - enter state (action)
+
+config update? I should use self.configuration instead of self.current_state. However self.configuration seems to lag behing the actual current state.
+
+RuntimeClassBase
+
+step -> big_step -> combo_step -> small_step -> fire()
+
+ObjectManager?
+
+ObjectManagerBase has a set of RuntimeClassBase instances
+
+
+
+
+"Alternatively, by instrumenting the model, you can also apply a scaling factor to all transitions to mimic scaled real-time, but then you cannot change the scaling factor during execution. It's also not possible to change execution speed to "as-fast-as-possible" by instrumentation alone: you cannot set all "after"s to 0, because then transitions could fire in a different order and this would change the meaning of the model."
+
+"For instance, if we want to use our model in TkInter code (Python), or in a web browser (JS), both already have an event loop that SCCD can make use of via the "event loop" simulation type. With an event loop, there is a single thread, that looks for "due" events (events are timestamped), and handles them. If there are no due events, but the event queue is not empty, the process will sleep until the next event is due. If the queue is empty, the process sleeps until it is woken up by an input event.
+
+When there is no event loop in place, the "threads" simulation type will simply run the simulation in a separate thread, and use Python's native sleep function.
+
+The "game loop" simulation type simply lets you advance simulated time in custom increments. In the old days (and maybe still today), a video game had a main loop, that would (1) check the state of input devices (mouse, keyboard, joystick, ...), generating necessary input "events", (2) advance simulated time (processing inputs, updating the state of the game), (3) render a frame based on the new state of the game, and (4) switch framebuffers ("double buffering"), every 1/60th of a second. Also here, there is only a single thread."

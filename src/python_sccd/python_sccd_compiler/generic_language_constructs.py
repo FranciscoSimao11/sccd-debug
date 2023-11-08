@@ -553,6 +553,12 @@ class LessThanOperator(Operator):
 class GreaterThanOperator(Operator):
 	pass
 
+class GreaterThanOrEqualOperator(Operator):
+	pass
+
+class LessThanOrEqualOperator(Operator):
+	pass
+
 class NotOperator(Operator):
 	pass
 
@@ -630,6 +636,14 @@ class LessThanExpression(BinaryExpression):
 class GreaterThanExpression(BinaryExpression):
 	def __init__(self, lexpr = None, rexpr = None):
 		BinaryExpression.__init__(self, lexpr, GreaterThanOperator(), rexpr)
+  
+class GreaterThanOrEqualExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, GreaterThanOrEqualOperator(), rexpr)
+  
+class LessThanOrEqualExpression(BinaryExpression):
+	def __init__(self, lexpr = None, rexpr = None):
+		BinaryExpression.__init__(self, lexpr, LessThanOrEqualOperator(), rexpr)
 
 class EqualsExpression(BinaryExpression):
 	def __init__(self, lexpr = None, rexpr = None):
@@ -910,6 +924,12 @@ class GenericWriterBase(Visitor):
 
 	def visit_LessThanOperator(self, l):
 		self.out.extendWrite(" < ")
+
+	def visit_GreaterThanOrEqualOperator(self, g):
+		self.out.extendWrite(" >= ")
+  	
+	def visit_LessThanOrEqualOperator(self, l):
+		self.out.extendWrite(" <= ")
 
 	def visit_Literal(self, l):
 		self.out.extendWrite(l.getText())

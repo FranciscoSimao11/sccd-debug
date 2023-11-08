@@ -18,13 +18,34 @@
             </body>
         </method>
         <scxml initial="state_A">
-            <state id="state_A">
-                <onentry>
+            <state id="state_A" initial="state_A1">
+                <state id="state_A1">
+                    <onentry>
+                        <script>
+                            self.increment_counter();
+                        </script>
+                    </onentry>
+                    <onexit>
+                        <script>
+                            self.increment_counter();
+                        </script>
+                    </onexit>
+                    <transition target="../state_A2" event="goa2" port="input" />
+                </state>
+                <state id="state_A2">
+                    <onentry>
+                        <script>
+                            self.increment_counter();
+                        </script>
+                    </onentry>
+                    <transition target="../state_A1" event="goa1" port="input" />
+                    <transition target="/state_B" event="gob" port="input" />
+                </state>
+                <onexit>
                     <script>
                         self.increment_counter();
                     </script>
-                </onentry>
-                <transition target="../state_B" after="10" />
+                </onexit>
             </state>
             <state id="state_B">
                 <onentry>

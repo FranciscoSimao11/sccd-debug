@@ -93,8 +93,18 @@ class MainApp(RuntimeClassBase):
         self.states["/state_B"].setEnter(self._state_B_enter)
         self.states["/state_B"].setExit(self._state_B_exit)
         
+        # state /state_C
+        self.states["/state_C"] = State(3, "/state_C", self)
+        self.states["/state_C"].setEnter(self._state_C_enter)
+        self.states["/state_C"].setExit(self._state_C_exit)
+        
+        # state /state_D
+        self.states["/state_D"] = State(4, "/state_D", self)
+        self.states["/state_D"].setEnter(self._state_D_enter)
+        self.states["/state_D"].setExit(self._state_D_exit)
+        
         # state /state_Debug
-        self.states["/state_Debug"] = State(3, "/state_Debug", self)
+        self.states["/state_Debug"] = State(5, "/state_Debug", self)
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
         
         # debug events
@@ -103,64 +113,155 @@ class MainApp(RuntimeClassBase):
         
         # debug transitions
         self.pauseTransitions = {}
+        self.timedTransitions = []
+        self.eventTransitions = {}
         
         # add children
         self.states[""].addChild(self.states["/state_A"])
         self.states[""].addChild(self.states["/state_B"])
+        self.states[""].addChild(self.states["/state_C"])
+        self.states[""].addChild(self.states["/state_D"])
         self.states[""].addChild(self.states["/state_Debug"])
         self.states[""].fixTree()
         self.states[""].default_state = self.states["/state_A"]
         
         # transition /state_A
+        self.eventTransitions["/state_A"] = []
         _state_A_0 = Transition(self, self.states["/state_A"], [self.states["/state_B"]])
         _state_A_0.setTrigger(Event("_0after"))
         self.states["/state_A"].addTransition(_state_A_0)
+        self.timedTransitions.append(_state_A_0)
+        _state_A_1 = Transition(self, self.states["/state_A"], [self.states["/state_C"]])
+        _state_A_1.setTrigger(Event("_1after"))
+        self.states["/state_A"].addTransition(_state_A_1)
+        self.timedTransitions.append(_state_A_1)
+        _state_A_2 = Transition(self, self.states["/state_A"], [self.states["/state_D"]])
+        _state_A_2.setTrigger(Event("d", self.getInPortName("input")))
+        self.states["/state_A"].addTransition(_state_A_2)
+        self.eventTransitions["/state_A"].append(_state_A_2)
         
         # transition /state_B
+        self.eventTransitions["/state_B"] = []
         _state_B_0 = Transition(self, self.states["/state_B"], [self.states["/state_A"]])
         _state_B_0.setTrigger(Event("move", self.getInPortName("input")))
         self.states["/state_B"].addTransition(_state_B_0)
+        self.eventTransitions["/state_B"].append(_state_B_0)
+        
+        # transition /state_C
+        self.eventTransitions["/state_C"] = []
+        _state_C_0 = Transition(self, self.states["/state_C"], [self.states["/state_A"]])
+        _state_C_0.setTrigger(Event("move", self.getInPortName("input")))
+        self.states["/state_C"].addTransition(_state_C_0)
+        self.eventTransitions["/state_C"].append(_state_C_0)
+        
+        # transition /state_D
+        self.eventTransitions["/state_D"] = []
+        _state_D_0 = Transition(self, self.states["/state_D"], [self.states["/state_A"]])
+        _state_D_0.setTrigger(Event("move", self.getInPortName("input")))
+        self.states["/state_D"].addTransition(_state_D_0)
+        self.eventTransitions["/state_D"].append(_state_D_0)
         
         # transitions /state_Debug
-        # to /state_Debug
+        # _state_A to /state_Debug
         _state_A_to_state_Debug = Transition(self, self.states["/state_A"], [self.states["/state_Debug"]])
         _state_A_to_state_Debug.setTrigger(pauseEvent)
         self.states["/state_A"].addTransition(_state_A_to_state_Debug)
         self.pauseTransitions["/state_A"] = _state_A_to_state_Debug
         
-        # from /state_Debug
+        # state_A from /state_Debug
         _state_Debug_to_state_A = Transition(self, self.states["/state_Debug"], [self.states["/state_A"]])
         _state_Debug_to_state_A.setTrigger(continueEvent)
         _state_Debug_to_state_A.setGuard(self.continueGuard_state_A)
         self.states["/state_Debug"].addTransition(_state_Debug_to_state_A)
         
-        # to /state_Debug
+        # _state_B to /state_Debug
         _state_B_to_state_Debug = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
         _state_B_to_state_Debug.setTrigger(pauseEvent)
         self.states["/state_B"].addTransition(_state_B_to_state_Debug)
         self.pauseTransitions["/state_B"] = _state_B_to_state_Debug
         
-        # from /state_Debug
+        # state_B from /state_Debug
         _state_Debug_to_state_B = Transition(self, self.states["/state_Debug"], [self.states["/state_B"]])
         _state_Debug_to_state_B.setTrigger(continueEvent)
         _state_Debug_to_state_B.setGuard(self.continueGuard_state_B)
         self.states["/state_Debug"].addTransition(_state_Debug_to_state_B)
+        
+        # _state_C to /state_Debug
+        _state_C_to_state_Debug = Transition(self, self.states["/state_C"], [self.states["/state_Debug"]])
+        _state_C_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/state_C"].addTransition(_state_C_to_state_Debug)
+        self.pauseTransitions["/state_C"] = _state_C_to_state_Debug
+        
+        # state_C from /state_Debug
+        _state_Debug_to_state_C = Transition(self, self.states["/state_Debug"], [self.states["/state_C"]])
+        _state_Debug_to_state_C.setTrigger(continueEvent)
+        _state_Debug_to_state_C.setGuard(self.continueGuard_state_C)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_state_C)
+        
+        # _state_D to /state_Debug
+        _state_D_to_state_Debug = Transition(self, self.states["/state_D"], [self.states["/state_Debug"]])
+        _state_D_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/state_D"].addTransition(_state_D_to_state_Debug)
+        self.pauseTransitions["/state_D"] = _state_D_to_state_Debug
+        
+        # state_D from /state_Debug
+        _state_Debug_to_state_D = Transition(self, self.states["/state_Debug"], [self.states["/state_D"]])
+        _state_Debug_to_state_D.setTrigger(continueEvent)
+        _state_Debug_to_state_D.setGuard(self.continueGuard_state_D)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_state_D)
         
     
     def _state_A_enter(self):
         self.current_state = self.states["/state_A"]
         self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
+        
         if self.debugFlag == False:
             self.increment_counter();
-            self.addTimer(0, 10 / self.scaleFactor)
+            timers = []
+            self.addTimer(0, 20 / self.scaleFactor)
+            timers.append(20)
+            self.addTimer(1, 10 / self.scaleFactor)
+            timers.append(10)
+            iteration = 0
+            chosen = None
+            lowest = timers[0]
+            for t in self.timedTransitions:
+                port = t.trigger.port
+                source = t.source.name
+                if (source == self.current_state.name) and (port != "input"):
+                    if lowest >= timers[iteration]:
+                        lowest = timers[iteration]
+                        chosen = t
+                    iteration = iteration + 1
+            if iteration > 0:
+                temp = Transition(self, chosen.source, chosen.targets)
+                temp.setTrigger(Event("step", self.getInPortName("input")))
+                chosen.source.addTransition(temp)
+                attrs = [s.name for s in chosen.targets]
+                print("[time-based] type step to move to {} ".format(attrs))
+            
+            possibleT = self.eventTransitions["/state_A"]
+            source = self.current_state
+            i = 0
+            for t in possibleT:
+                temp = Transition(self, source, t.targets)
+                name = "step" + str(i)
+                temp.setTrigger(Event(name, self.getInPortName("input")))
+                source.addTransition(temp)
+                attrs = [s.name for s in t.targets]
+                print("[event-based] type {} to move to {} ".format(name, attrs))
+                i = (i + 1)
+            self.pauseTransitions["/state_A"].fire()
         else:
             if self.states["/state_A"].children == []:
                 self.debugFlag = False
-            self.addTimer(0, 10 - (self.timeDiff / self.scaleFactor))
+            self.addTimer(0, 20 - (self.timeDiff / self.scaleFactor))
+            self.addTimer(1, 10 - (self.timeDiff / self.scaleFactor))
     
     def _state_A_exit(self):
         self.removeTimer(0)
+        self.removeTimer(1)
         if self.pauseTransitions["/state_A"].enabled_event == None:
             self.current_states.get()
     
@@ -168,14 +269,85 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_B"]
         self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
+        
         if self.debugFlag == False:
             self.increment_counter();
+            timers = []
+            
+            possibleT = self.eventTransitions["/state_B"]
+            source = self.current_state
+            i = 0
+            for t in possibleT:
+                temp = Transition(self, source, t.targets)
+                name = "step" + str(i)
+                temp.setTrigger(Event(name, self.getInPortName("input")))
+                source.addTransition(temp)
+                attrs = [s.name for s in t.targets]
+                print("[event-based] type {} to move to {} ".format(name, attrs))
+                i = (i + 1)
+            self.pauseTransitions["/state_B"].fire()
         else:
             if self.states["/state_B"].children == []:
                 self.debugFlag = False
     
     def _state_B_exit(self):
         if self.pauseTransitions["/state_B"].enabled_event == None:
+            self.current_states.get()
+    
+    def _state_C_enter(self):
+        self.current_state = self.states["/state_C"]
+        self.current_states.put(self.current_state)
+        self.startTime = self.getSimulatedTime()
+        
+        if self.debugFlag == False:
+            self.increment_counter();
+            timers = []
+            
+            possibleT = self.eventTransitions["/state_C"]
+            source = self.current_state
+            i = 0
+            for t in possibleT:
+                temp = Transition(self, source, t.targets)
+                name = "step" + str(i)
+                temp.setTrigger(Event(name, self.getInPortName("input")))
+                source.addTransition(temp)
+                attrs = [s.name for s in t.targets]
+                print("[event-based] type {} to move to {} ".format(name, attrs))
+                i = (i + 1)
+        else:
+            if self.states["/state_C"].children == []:
+                self.debugFlag = False
+    
+    def _state_C_exit(self):
+        if self.pauseTransitions["/state_C"].enabled_event == None:
+            self.current_states.get()
+    
+    def _state_D_enter(self):
+        self.current_state = self.states["/state_D"]
+        self.current_states.put(self.current_state)
+        self.startTime = self.getSimulatedTime()
+        
+        if self.debugFlag == False:
+            self.increment_counter();
+            timers = []
+            
+            possibleT = self.eventTransitions["/state_D"]
+            source = self.current_state
+            i = 0
+            for t in possibleT:
+                temp = Transition(self, source, t.targets)
+                name = "step" + str(i)
+                temp.setTrigger(Event(name, self.getInPortName("input")))
+                source.addTransition(temp)
+                attrs = [s.name for s in t.targets]
+                print("[event-based] type {} to move to {} ".format(name, attrs))
+                i = (i + 1)
+        else:
+            if self.states["/state_D"].children == []:
+                self.debugFlag = False
+    
+    def _state_D_exit(self):
+        if self.pauseTransitions["/state_D"].enabled_event == None:
             self.current_states.get()
     
     def _state_Debug_enter(self):
@@ -190,6 +362,12 @@ class MainApp(RuntimeClassBase):
     
     def continueGuard_state_B(self, parameters):
         return self.current_state == self.states["/state_B"]
+    
+    def continueGuard_state_C(self, parameters):
+        return self.current_state == self.states["/state_C"]
+    
+    def continueGuard_state_D(self, parameters):
+        return self.current_state == self.states["/state_D"]
     
     def initializeStatechart(self):
         # enter default state

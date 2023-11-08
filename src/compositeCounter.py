@@ -88,13 +88,23 @@ class MainApp(RuntimeClassBase):
         self.states["/state_A"].setEnter(self._state_A_enter)
         self.states["/state_A"].setExit(self._state_A_exit)
         
+        # state /state_A/state_A1
+        self.states["/state_A/state_A1"] = State(2, "/state_A/state_A1", self)
+        self.states["/state_A/state_A1"].setEnter(self._state_A_state_A1_enter)
+        self.states["/state_A/state_A1"].setExit(self._state_A_state_A1_exit)
+        
+        # state /state_A/state_A2
+        self.states["/state_A/state_A2"] = State(3, "/state_A/state_A2", self)
+        self.states["/state_A/state_A2"].setEnter(self._state_A_state_A2_enter)
+        self.states["/state_A/state_A2"].setExit(self._state_A_state_A2_exit)
+        
         # state /state_B
-        self.states["/state_B"] = State(2, "/state_B", self)
+        self.states["/state_B"] = State(4, "/state_B", self)
         self.states["/state_B"].setEnter(self._state_B_enter)
         self.states["/state_B"].setExit(self._state_B_exit)
         
         # state /state_Debug
-        self.states["/state_Debug"] = State(3, "/state_Debug", self)
+        self.states["/state_Debug"] = State(5, "/state_Debug", self)
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
         
         # debug events
@@ -107,14 +117,25 @@ class MainApp(RuntimeClassBase):
         # add children
         self.states[""].addChild(self.states["/state_A"])
         self.states[""].addChild(self.states["/state_B"])
+        self.states["/state_A"].addChild(self.states["/state_A/state_A1"])
+        self.states["/state_A"].addChild(self.states["/state_A/state_A2"])
         self.states[""].addChild(self.states["/state_Debug"])
         self.states[""].fixTree()
         self.states[""].default_state = self.states["/state_A"]
+        self.states["/state_A"].default_state = self.states["/state_A/state_A1"]
         
-        # transition /state_A
-        _state_A_0 = Transition(self, self.states["/state_A"], [self.states["/state_B"]])
-        _state_A_0.setTrigger(Event("_0after"))
-        self.states["/state_A"].addTransition(_state_A_0)
+        # transition /state_A/state_A1
+        _state_A_state_A1_0 = Transition(self, self.states["/state_A/state_A1"], [self.states["/state_A/state_A2"]])
+        _state_A_state_A1_0.setTrigger(Event("goa2", self.getInPortName("input")))
+        self.states["/state_A/state_A1"].addTransition(_state_A_state_A1_0)
+        
+        # transition /state_A/state_A2
+        _state_A_state_A2_0 = Transition(self, self.states["/state_A/state_A2"], [self.states["/state_A/state_A1"]])
+        _state_A_state_A2_0.setTrigger(Event("goa1", self.getInPortName("input")))
+        self.states["/state_A/state_A2"].addTransition(_state_A_state_A2_0)
+        _state_A_state_A2_1 = Transition(self, self.states["/state_A/state_A2"], [self.states["/state_B"]])
+        _state_A_state_A2_1.setTrigger(Event("gob", self.getInPortName("input")))
+        self.states["/state_A/state_A2"].addTransition(_state_A_state_A2_1)
         
         # transition /state_B
         _state_B_0 = Transition(self, self.states["/state_B"], [self.states["/state_A"]])
@@ -135,6 +156,30 @@ class MainApp(RuntimeClassBase):
         self.states["/state_Debug"].addTransition(_state_Debug_to_state_A)
         
         # to /state_Debug
+        _state_A_state_A1_to_state_Debug = Transition(self, self.states["/state_A/state_A1"], [self.states["/state_Debug"]])
+        _state_A_state_A1_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/state_A/state_A1"].addTransition(_state_A_state_A1_to_state_Debug)
+        self.pauseTransitions["/state_A/state_A1"] = _state_A_state_A1_to_state_Debug
+        
+        # from /state_Debug
+        _state_Debug_to_state_A_state_A1 = Transition(self, self.states["/state_Debug"], [self.states["/state_A/state_A1"]])
+        _state_Debug_to_state_A_state_A1.setTrigger(continueEvent)
+        _state_Debug_to_state_A_state_A1.setGuard(self.continueGuard_state_A_state_A1)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_state_A_state_A1)
+        
+        # to /state_Debug
+        _state_A_state_A2_to_state_Debug = Transition(self, self.states["/state_A/state_A2"], [self.states["/state_Debug"]])
+        _state_A_state_A2_to_state_Debug.setTrigger(pauseEvent)
+        self.states["/state_A/state_A2"].addTransition(_state_A_state_A2_to_state_Debug)
+        self.pauseTransitions["/state_A/state_A2"] = _state_A_state_A2_to_state_Debug
+        
+        # from /state_Debug
+        _state_Debug_to_state_A_state_A2 = Transition(self, self.states["/state_Debug"], [self.states["/state_A/state_A2"]])
+        _state_Debug_to_state_A_state_A2.setTrigger(continueEvent)
+        _state_Debug_to_state_A_state_A2.setGuard(self.continueGuard_state_A_state_A2)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_state_A_state_A2)
+        
+        # to /state_Debug
         _state_B_to_state_Debug = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
         _state_B_to_state_Debug.setTrigger(pauseEvent)
         self.states["/state_B"].addTransition(_state_B_to_state_Debug)
@@ -149,24 +194,45 @@ class MainApp(RuntimeClassBase):
     
     def _state_A_enter(self):
         self.current_state = self.states["/state_A"]
-        self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         if self.debugFlag == False:
-            self.increment_counter();
-            self.addTimer(0, 10 / self.scaleFactor)
+            pass
         else:
             if self.states["/state_A"].children == []:
                 self.debugFlag = False
-            self.addTimer(0, 10 - (self.timeDiff / self.scaleFactor))
     
     def _state_A_exit(self):
-        self.removeTimer(0)
         if self.pauseTransitions["/state_A"].enabled_event == None:
-            self.current_states.get()
+            self.increment_counter();
+    
+    def _state_A_state_A1_enter(self):
+        self.current_state = self.states["/state_A/state_A1"]
+        self.startTime = self.getSimulatedTime()
+        if self.debugFlag == False:
+            self.increment_counter();
+        else:
+            if self.states["/state_A/state_A1"].children == []:
+                self.debugFlag = False
+    
+    def _state_A_state_A1_exit(self):
+        if self.pauseTransitions["/state_A/state_A1"].enabled_event == None:
+            self.increment_counter();
+    
+    def _state_A_state_A2_enter(self):
+        self.current_state = self.states["/state_A/state_A2"]
+        self.startTime = self.getSimulatedTime()
+        if self.debugFlag == False:
+            self.increment_counter();
+        else:
+            if self.states["/state_A/state_A2"].children == []:
+                self.debugFlag = False
+    
+    def _state_A_state_A2_exit(self):
+        if self.pauseTransitions["/state_A/state_A2"].enabled_event == None:
+            pass
     
     def _state_B_enter(self):
         self.current_state = self.states["/state_B"]
-        self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         if self.debugFlag == False:
             self.increment_counter();
@@ -176,7 +242,7 @@ class MainApp(RuntimeClassBase):
     
     def _state_B_exit(self):
         if self.pauseTransitions["/state_B"].enabled_event == None:
-            self.current_states.get()
+            pass
     
     def _state_Debug_enter(self):
         self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
@@ -187,6 +253,12 @@ class MainApp(RuntimeClassBase):
     
     def continueGuard_state_A(self, parameters):
         return self.current_state == self.states["/state_A"]
+    
+    def continueGuard_state_A_state_A1(self, parameters):
+        return self.current_state == self.states["/state_A/state_A1"]
+    
+    def continueGuard_state_A_state_A2(self, parameters):
+        return self.current_state == self.states["/state_A/state_A2"]
     
     def continueGuard_state_B(self, parameters):
         return self.current_state == self.states["/state_B"]

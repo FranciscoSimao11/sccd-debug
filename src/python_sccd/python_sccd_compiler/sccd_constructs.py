@@ -1167,4 +1167,3 @@ class DiagramTestExpected(Visitable):
         for slot_node in slot_nodes:
             s = DiagramTestExpectedSlot(slot_node)
             self.slots.append(s)
-

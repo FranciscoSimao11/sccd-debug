@@ -24,7 +24,16 @@
                         self.increment_counter();
                     </script>
                 </onentry>
-                <transition target="../state_B" after="10" />
+                <onexit>
+                    <script>
+                        self.increment_counter();
+                    </script>
+                </onexit>
+                <transition target="../state_B" after="10" >
+                    <script>
+                        self.increment_counter();
+                    </script>
+                </transition>
             </state>
             <state id="state_B">
                 <onentry>
