@@ -24,27 +24,13 @@
                         self.increment_counter();
                     </script>
                 </onentry>
-                <transition target="../state_B" after="10" />
-                <transition target="../state_C" after="20" />
-                <transition target="../state_D" event="d" port="input" />
+                <transition target="../state_B" after="10" >
+                    <script>
+                        self.increment_counter();
+                    </script>
+                </transition>
             </state>
             <state id="state_B">
-                <onentry>
-                    <script>
-                        self.increment_counter();
-                    </script>
-                </onentry>
-                <transition target="../state_A" event="move" port="input" />
-            </state>
-            <state id="state_C">
-                <onentry>
-                    <script>
-                        self.increment_counter();
-                    </script>
-                </onentry>
-                <transition target="../state_A" event="move" port="input" />
-            </state>
-            <state id="state_D">
                 <onentry>
                     <script>
                         self.increment_counter();

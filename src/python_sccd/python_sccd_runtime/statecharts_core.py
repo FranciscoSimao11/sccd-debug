@@ -797,7 +797,6 @@ class State:
         self.state_id = state_id
         self.name = name
         self.obj = obj
-        
         self.ancestors = []
         self.descendants = []
         self.descendant_bitmap = 0
@@ -1054,7 +1053,7 @@ class RuntimeClassBase(object):
         
         self.current_state = {}
         self.current_states = LifoQueue()
-        #self.current_states.
+        #self.current_states = []
         self.history_values = {}
         self.timers = {}
         self.timers_to_add = {}

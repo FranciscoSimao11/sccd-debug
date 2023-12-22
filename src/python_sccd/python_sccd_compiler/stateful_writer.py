@@ -117,7 +117,6 @@ class StatefulWriter:
 	def beginIf(self, condition):
 		self.begin(IfStatement(condition))
 
-
 	def beginMethod(self, name, comment = None):
 		m = Method(self.get(), name, comment)
 		self.get().add(m)

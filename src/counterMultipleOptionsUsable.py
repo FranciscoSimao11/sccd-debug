@@ -115,7 +115,6 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions = {}
         self.timedTransitions = []
         self.eventTransitions = {}
-        self.breakpointTransitions = {}
         
         # add children
         self.states[""].addChild(self.states["/state_A"])
@@ -186,12 +185,6 @@ class MainApp(RuntimeClassBase):
         _state_Debug_to_state_B.setTrigger(continueEvent)
         _state_Debug_to_state_B.setGuard(self.continueGuard_state_B)
         self.states["/state_Debug"].addTransition(_state_Debug_to_state_B)
-        
-        # state_B to /state_Debug
-        trans1 = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
-        trans1.setTrigger(Event("_2after"))
-        self.states["/state_B"].addTransition(trans1)
-        #self.breakpointTransitions['go'] = trans1
         
         # _state_C to /state_Debug
         _state_C_to_state_Debug = Transition(self, self.states["/state_C"], [self.states["/state_Debug"]])
@@ -281,7 +274,7 @@ class MainApp(RuntimeClassBase):
         if self.debugFlag == False:
             self.increment_counter();
             timers = []
-            self.addTimer(2, 0)
+            
             possibleT = self.eventTransitions["/state_B"]
             source = self.current_state
             i = 0
@@ -293,8 +286,7 @@ class MainApp(RuntimeClassBase):
                 attrs = [s.name for s in t.targets]
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
-            #self.pauseTransitions["/state_B"].fire()
-            #self.breakpointTransitions['go'].fire()
+            self.pauseTransitions["/state_B"].fire()
             if self.counter == 5:
                 self.pauseTransitions["/state_B"].fire()
         else:

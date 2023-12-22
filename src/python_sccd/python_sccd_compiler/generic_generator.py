@@ -36,9 +36,17 @@ class GenericGenerator(Visitor):
         f = open("breakpoints.xml", "r")
         breakpointList = ET.parse(f).getroot()
         breakpoints = {}
+        breakpoints['states'] = {}
+        breakpoints['timestamps'] = []
+        breakpoints['variables'] = {}
         for b in breakpointList.findall('breakpoint'):
-            breakpoints[b.get('state')] = 1
-            #breakpoints.append(b.get('state'))
+            if b.get('state') != None:
+                breakpoints['states'][b.get('state')] = 1
+            elif b.get('timestamp') != None:
+                breakpoints["timestamps"].append(b.get('timestamp'))
+            elif b.get('variable') != None and b.get('value') != None:
+                breakpoints["variables"][b.get('variable')] = b.get('value')
+            
         return breakpoints
 
     def visit_ClassDiagram(self, class_diagram):
@@ -350,7 +358,7 @@ class GenericGenerator(Visitor):
                 self.writer.addAssignment(GLC.SelfProperty("timeDiff"), "0")
 
             
-            
+            # if debug mode?
             self.writer.addVSpace()
             self.writer.addComment("set execution speed")
             self.writer.add(GLC.FunctionCall(GLC.SelfProperty("setSimulationSpeed")))
@@ -509,9 +517,7 @@ class GenericGenerator(Visitor):
         # write all states
         for (i, s) in enumerate(statechart.states):
             writeState(s, i)
-        
-        
-        
+            
         if self.debug_mode == 1:
             debugName = "/state_Debug"
             # create DEBUG state
@@ -582,11 +588,12 @@ class GenericGenerator(Visitor):
             if s.transitions:
                 self.writer.addVSpace()
                 self.writer.addComment("transition %s" % s.new_full_name)
-                self.writer.addAssignment(
-                    GLC.MapIndexedExpression(
-                        GLC.SelfProperty("eventTransitions"),
-                        GLC.String(s.new_full_name)
-                    ), "[]")
+                if self.debug_mode == 1:
+                    self.writer.addAssignment(
+                        GLC.MapIndexedExpression(
+                            GLC.SelfProperty("eventTransitions"),
+                            GLC.String(s.new_full_name)
+                        ), "[]")
             for (i, t) in enumerate(s.transitions + s.else_transitions):
                 # instantiate new Transition instance
                 self.writer.addAssignment(
@@ -816,8 +823,10 @@ class GenericGenerator(Visitor):
             self.writer.addAssignment("timers", "[]")
 
         appended = False
+        hasTransition = False
         # take care of any AFTER events
         for transition in parent_node.transitions :
+            hasTransition = True
             trigger = transition.getTrigger()
             if trigger.isAfter() :
                 self.writer.startRecordingExpression()
@@ -832,7 +841,7 @@ class GenericGenerator(Visitor):
         if self.debug_mode == 1:
             self.chooseNextTransition(appended)
             self.writer.addVSpace()
-            self.chooseNextInputEvent(parent_node)
+            self.chooseNextInputEvent(parent_node, hasTransition)
             
             
             
@@ -1346,26 +1355,27 @@ class GenericGenerator(Visitor):
             self.writer.addRawCode('print("[time-based] type step to move to {} ".format(attrs))')
             self.writer.endIf()
             
-    def chooseNextInputEvent(self, parent_node):
-        self.writer.addAssignment("possibleT", GLC.MapIndexedExpression(GLC.SelfProperty("eventTransitions"), GLC.String(parent_node.new_full_name),))
-        self.writer.addAssignment("source", GLC.SelfProperty("current_state"))
-        self.writer.addAssignment("i", "0")
+    def chooseNextInputEvent(self, parent_node, hasTransition):
+        if hasTransition:
+            self.writer.addAssignment("possibleT", GLC.MapIndexedExpression(GLC.SelfProperty("eventTransitions"), GLC.String(parent_node.new_full_name),))
+            self.writer.addAssignment("source", GLC.SelfProperty("current_state"))
+            self.writer.addAssignment("i", "0")
+            
+            self.writer.beginForLoopIterateArray("possibleT", "t")
+            
+            transition = GLC.NewExpression("Transition", [GLC.SelfExpression(), "source", GLC.Property("t", "targets")])
+            self.writer.addAssignment("temp", transition)
+            self.writer.addRawCode('name = "step" + str(i)')
+            event = GLC.NewExpression("Event", 
+                                    ["name", GLC.FunctionCall(GLC.SelfProperty("getInPortName"), [GLC.String("input")])])
+            self.writer.add(GLC.FunctionCall(GLC.Property("temp", "setTrigger"), [event]))
+            self.writer.add(GLC.FunctionCall(GLC.Property("source","addTransition"), ["temp"]))
+            self.writer.addRawCode("attrs = [s.name for s in t.targets]")
+            self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
+            self.writer.addAssignment("i", GLC.AdditionExpression("i", "1"))
+            self.writer.endForLoopIterateArray()
         
-        self.writer.beginForLoopIterateArray("possibleT", "t")
-        
-        transition = GLC.NewExpression("Transition", [GLC.SelfExpression(), "source", GLC.Property("t", "targets")])
-        self.writer.addAssignment("temp", transition)
-        self.writer.addRawCode('name = "step" + str(i)')
-        event = GLC.NewExpression("Event", 
-                                ["name", GLC.FunctionCall(GLC.SelfProperty("getInPortName"), [GLC.String("input")])])
-        self.writer.add(GLC.FunctionCall(GLC.Property("temp", "setTrigger"), [event]))
-        self.writer.add(GLC.FunctionCall(GLC.Property("source","addTransition"), ["temp"]))
-        self.writer.addRawCode("attrs = [s.name for s in t.targets]")
-        self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
-        self.writer.addAssignment("i", GLC.AdditionExpression("i", "1"))
-        self.writer.endForLoopIterateArray()
-        
-        if parent_node.new_full_name in self.breakpoints:
+        if parent_node.new_full_name in self.breakpoints['states']:
             self.writer.add(GLC.FunctionCall(
                                 GLC.Property(
                                 GLC.MapIndexedExpression(
@@ -1373,4 +1383,19 @@ class GenericGenerator(Visitor):
                                     GLC.String(parent_node.new_full_name),
                             ), "fire")))
         
+
+        for k,v in self.breakpoints['variables'].items():
+            self.writer.beginIf(
+                GLC.EqualsExpression(
+                    GLC.SelfProperty(k),
+                    v
+                ))
+            self.writer.add(GLC.FunctionCall(
+                                GLC.Property(
+                                GLC.MapIndexedExpression(
+                                    GLC.SelfProperty("pauseTransitions"),
+                                    GLC.String(parent_node.new_full_name),
+                            ), "fire")))
+            self.writer.endIf()
+
         self.writer.endElseIf()
