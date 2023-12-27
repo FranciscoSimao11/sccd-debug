@@ -26,7 +26,8 @@ class MainApp(RuntimeClassBase):
         self.debugFlag = False
         self.startTime = 0
         self.timeDiff = 0
-        
+        self.executionTime = 0 #excluding debug time
+
         # set execution speed
         self.setSimulationSpeed()
         
@@ -236,7 +237,7 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_A"]
         self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
-        
+
         if self.debugFlag == False:
             self.increment_counter();
             timers = []
@@ -284,11 +285,15 @@ class MainApp(RuntimeClassBase):
                 self.debugFlag = False
             self.addTimer(0, 10 - (self.timeDiff / self.scaleFactor))
             self.addTimer(1, 20 - (self.timeDiff / self.scaleFactor))
-            print(self.getSimulatedTime())
     
     def _state_A_exit(self):
         self.removeTimer(0)
         self.removeTimer(1)
+        print("sim: ", self.getSimulatedTime())
+        print("start: ", self.startTime)
+        print("diff: ", self.timeDiff*1000)
+        self.executionTime = self.executionTime + (self.getSimulatedTime() - (self.startTime-self.timeDiff*1000))
+        print("ex: ", self.executionTime)
         if self.pauseTransitions["/state_A"].enabled_event == None:
             self.current_states.get()
     
@@ -296,7 +301,7 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_B"]
         self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
-        
+
         if self.debugFlag == False:
             self.increment_counter();
             timers = []
@@ -322,6 +327,8 @@ class MainApp(RuntimeClassBase):
                 self.debugFlag = False
     
     def _state_B_exit(self):
+        self.executionTime = self.executionTime + (self.getSimulatedTime() - (self.startTime-self.timeDiff*1000))
+        print("ex: ", self.executionTime)
         if self.pauseTransitions["/state_B"].enabled_event == None:
             self.current_states.get()
     
@@ -386,8 +393,11 @@ class MainApp(RuntimeClassBase):
             self.current_states.get()
     
     def _state_Debug_enter(self):
+        #print(self.getSimulatedTime())
         self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
         self.debugFlag = True
+        #self.executionTime = self.executionTime + self.timeDiff
+        #print(self.executionTime)
         print("DEBUG MODE")
         print("Current State: ", self.current_state.name)
         print("counter: ", self.counter)
