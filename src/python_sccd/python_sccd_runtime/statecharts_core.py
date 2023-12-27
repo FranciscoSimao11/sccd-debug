@@ -1057,7 +1057,7 @@ class RuntimeClassBase(object):
         self.history_values = {}
         self.timers = {}
         self.timers_to_add = {}
-
+        #self.breakpoints = [5000, 15000]
         self.big_step = BigStepState()
         self.combo_step = ComboStepState()
         self.small_step = SmallStepState()
@@ -1097,6 +1097,7 @@ class RuntimeClassBase(object):
         self.earliest_event_time = self.events.getEarliestTime()
         
     def addEvent(self, event_list, time_offset = 0):
+        #print(event_list)
         event_time = self.controller.simulated_time + time_offset
         if not (event_time, self) in self.controller.object_manager.instance_times:
             heappush(self.controller.object_manager.instance_times, (event_time, self))
@@ -1129,11 +1130,22 @@ class RuntimeClassBase(object):
     def step(self):
         #raw_input("Press Enter to step\n")
         is_stable = False
+        #print(self.events)
+        # pattern = "breakpoint_"
+        # incomingBreakpoint = False
         while not is_stable:
             due = []
             if self.events.getEarliestTime() <= self.controller.simulated_time:
                 due = [self.events.pop()]
-            is_stable = not self.bigStep(due)
+                # print(due)
+                # if(re.match(pattern, due[0].name) != None):
+                #     incomingBreakpoint = True
+                    #print(self.configuration)
+            # if(not incomingBreakpoint):
+            #     is_stable = not self.bigStep(due)
+            # else:
+            #     is_stable = not self.bigStep(due, "breakpoint")
+            is_stable = not self.bigStep(due)        
             self.processBigStepOutput()
         for index, entry in list(self.timers_to_add.items()):
             self.timers[index] = self.events.add(*entry)
@@ -1216,6 +1228,11 @@ class RuntimeClassBase(object):
                         import functools
                         conflicting.append(sorted(conflict, key=functools.cmp_to_key(__younger_than)))
 
+            # if(incomingBreakpoint):
+            #     newTransition = Transition(self, self.configuration[0], [State(5, "/state_Debug", self)])
+            #     self.configuration[0].addTransition(newTransition)
+            #     #print(newTransition)
+            #     newTransition.fire()
             if self.semantics.concurrency == StatechartSemantics.Single:
                 candidate = conflicting[0]
                 if self.semantics.priority == StatechartSemantics.SourceParent:
@@ -1254,6 +1271,8 @@ class RuntimeClassBase(object):
                 state.enter()
         if self.eventless_states:
             self.controller.object_manager.eventless.add(self)
+        # for b in self.breakpoints:
+        #     self.addEvent(Event("breakpoint_%i" % (b)), b)
         
         
 class BigStepState(object):
