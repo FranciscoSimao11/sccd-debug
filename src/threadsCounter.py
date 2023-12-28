@@ -1,10 +1,10 @@
-import counterMultipleOptions as counter
+#import counterMultipleOptions as counter
 #import counterMultipleOptionsUsable as counter
 #import counter
 #import counterNoDebug as counter
 #import compositeCounter as counter
 #import historyCounter as counter
-#import parallelCounter as counter
+import parallelCounter as counter
 from sccd.runtime.statecharts_core import Event
 import threading
 

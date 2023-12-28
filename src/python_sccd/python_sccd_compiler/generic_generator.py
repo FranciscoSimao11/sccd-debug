@@ -1272,6 +1272,9 @@ class GenericGenerator(Visitor):
         # breakpoints['states'] = {}
         # breakpoints['timestamps'] = []
         # breakpoints['variables'] = {}
+
+        breakpointIndex = 0
+
         for k,v in self.breakpoints['states'].items():
             stateName = k
             breakpointIndex = v
