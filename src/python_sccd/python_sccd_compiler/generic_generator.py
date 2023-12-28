@@ -357,10 +357,12 @@ class GenericGenerator(Visitor):
             if self.debug_mode == 1:
                 self.writer.addVSpace()
                 self.writer.addAssignment(GLC.SelfProperty("debugFlag"), "False")
-                self.writer.addAssignment(GLC.SelfProperty("startTime"), "0")
-                self.writer.addAssignment(GLC.SelfProperty("timeDiff"), "0")
+                self.writer.addAssignment(GLC.SelfProperty("startTime"), "0.0")
+                #self.writer.addAssignment(GLC.SelfProperty("timeDiff"), "0")
+                self.writer.addAssignment(GLC.SelfProperty("executionTime"), "0.0")
+                self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"), "0.0")
+                self.writer.addAssignment(GLC.SelfProperty("cumulativeDebugTime"), "0.0")
 
-            
             # if debug mode?
             self.writer.addVSpace()
             self.writer.addComment("set execution speed")
@@ -819,6 +821,7 @@ class GenericGenerator(Visitor):
                 GLC.EqualsExpression(
                     GLC.SelfProperty("debugFlag"), "False"
                     ))
+            self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"),"0.0")
         
         if enter_method.action:
             enter_method.action.accept(self)
@@ -841,13 +844,10 @@ class GenericGenerator(Visitor):
                     self.writer.add(GLC.FunctionCall(GLC.Property("timers", "append"),[after]))
                     appended = True
 
-
         if self.debug_mode == 1:
             self.chooseNextTransition(appended)
             self.writer.addVSpace()
             self.chooseNextInputEvent(parent_node, hasTransition)
-            
-            
             
             self.writer.beginElse()
             self.writer.beginIf(GLC.EqualsExpression(
@@ -864,7 +864,21 @@ class GenericGenerator(Visitor):
                     self.writer.startRecordingExpression()
                     trigger.after.accept(self)
                     after = self.writer.stopRecordingExpression()
-                    self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(trigger.getAfterIndex()), GLC.MinusExpression(after,GLC.DivisionExpression(GLC.SelfProperty("timeDiff"), GLC.SelfProperty("scaleFactor")))]))
+                    afterText = after.getExpressionList()[0].getText()
+                    self.writer.add(
+                        GLC.FunctionCall(
+                            GLC.SelfProperty("addTimer"), 
+                            [str(trigger.getAfterIndex()), 
+                            GLC.MinusExpression(
+                                str(float(afterText)),
+                                GLC.DivisionExpression(
+                                    GLC.DivisionExpression(
+                                        GLC.SelfProperty("localExecutionTime"), 
+                                        #GLC.FunctionCall("float", "1000")), 
+                                        "1000.0"),
+                                        GLC.SelfProperty("scaleFactor"))
+                                        )]
+                                        ))
         
             self.writer.endElse()        
         
@@ -883,6 +897,24 @@ class GenericGenerator(Visitor):
                 self.writer.add(GLC.FunctionCall(GLC.SelfProperty("removeTimer"), [str(trigger.getAfterIndex())]))
         
         if self.debug_mode == 1:
+            self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"),
+                                      GLC.AdditionExpression(
+                                          GLC.SelfProperty("localExecutionTime"), 
+                                          GLC.MinusExpression(
+                                              GLC.FunctionCall(
+                                                  GLC.SelfProperty("getSimulatedTime")), 
+                                                  GLC.SelfProperty("startTime"))
+                                      ))
+
+            self.writer.addAssignment(GLC.SelfProperty("executionTime"),
+                                      GLC.AdditionExpression(
+                                          GLC.SelfProperty("executionTime"), 
+                                          GLC.MinusExpression(
+                                              GLC.FunctionCall(
+                                                  GLC.SelfProperty("getSimulatedTime")), 
+                                                  GLC.SelfProperty("startTime"))
+                                      ))
+
             self.writer.beginIf(
                         GLC.EqualsExpression(
                                 GLC.Property(
@@ -899,7 +931,7 @@ class GenericGenerator(Visitor):
         if exit_method.action:
             exit_method.action.accept(self)
         
-        self.writer.addRawCode("self.current_states.get()")  
+        self.writer.addRawCode("self.current_states.get()")  #?
         
         if self.debug_mode == 1:
             self.writer.endIf()
@@ -1087,6 +1119,16 @@ class GenericGenerator(Visitor):
                                 "setEnter"
                             ),
                             [GLC.SelfProperty("_" + debugName[1:] + "_enter")]
+                        )
+                    )
+        
+        self.writer.add(
+                        GLC.FunctionCall(
+                            GLC.Property(
+                                index_expr,
+                                "setExit"
+                            ),
+                            [GLC.SelfProperty("_" + debugName[1:] + "_exit")]
                         )
                     )
             
@@ -1329,24 +1371,38 @@ class GenericGenerator(Visitor):
                 self.writer.addVSpace()
                 
     def createDebugActions(self, debugName):
+        #create enter debug state
         self.writer.beginMethod("_" + debugName[1:] + "_enter")
         self.writer.beginMethodBody()
         
-        self.writer.addAssignment(GLC.SelfProperty("timeDiff"), 
-                                GLC.DivisionExpression(
-                                GLC.MinusExpression(
-                                    GLC.FunctionCall(
-                                        GLC.SelfProperty(
-                                        "getSimulatedTime")),
-                                    GLC.SelfProperty("startTime")
-                                    ), "1000.0")
-                                )
+        # self.writer.addAssignment(GLC.SelfProperty("timeDiff"), 
+        #                         GLC.DivisionExpression(
+        #                         GLC.MinusExpression(
+        #                             GLC.FunctionCall(
+        #                                 GLC.SelfProperty(
+        #                                 "getSimulatedTime")),
+        #                             GLC.SelfProperty("startTime")
+        #                             ), "1000.0")
+        #                         )
         self.writer.addAssignment(GLC.SelfProperty("debugFlag"), "True")
         
         self.writer.add(GLC.FunctionCall("print",[GLC.String("DEBUG MODE")]))
         self.writer.add(GLC.FunctionCall("print", [GLC.String("Current State: "), GLC.Property(GLC.SelfProperty("current_state"), "name")]))
         for atr in self.attributes:
             self.writer.add(GLC.FunctionCall("print",[GLC.String(atr.name + ": "), GLC.SelfProperty(atr.name)]))
+                                                
+        
+        self.writer.endMethodBody()
+        self.writer.endMethod()
+
+        #create exit debug state
+        self.writer.beginMethod("_" + debugName[1:] + "_exit")
+        self.writer.beginMethodBody()
+        
+        self.writer.addAssignment(GLC.SelfProperty("cumulativeDebugTime"),
+                                  GLC.MinusExpression(
+                                      GLC.FunctionCall(GLC.SelfProperty("getSimulatedTime")), 
+                                      GLC.SelfProperty("executionTime")))
                                                 
         
         self.writer.endMethodBody()
