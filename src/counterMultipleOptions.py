@@ -24,9 +24,11 @@ class MainApp(RuntimeClassBase):
         self.semantics.concurrency = StatechartSemantics.Single
         
         self.debugFlag = False
-        self.startTime = 0
+        self.startTime = 0.0
         self.timeDiff = 0
-        self.executionTime = 0 #excluding debug time
+        self.executionTime = 0.0 #excluding debug time
+        self.localExecutionTime = 0.0 #execution time for a particular state
+        self.cumulativeDebugTime = 0
 
         # set execution speed
         self.setSimulationSpeed()
@@ -108,7 +110,8 @@ class MainApp(RuntimeClassBase):
         # state /state_Debug
         self.states["/state_Debug"] = State(5, "/state_Debug", self)
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
-        
+        self.states["/state_Debug"].setExit(self._state_Debug_exit)
+
         # debug events
         pauseEvent = Event("pause", self.getInPortName("input"))
         continueEvent = Event("continue", self.getInPortName("input"))
@@ -239,6 +242,7 @@ class MainApp(RuntimeClassBase):
         self.startTime = self.getSimulatedTime()
 
         if self.debugFlag == False:
+            self.localExecutionTime = 0
             self.increment_counter();
             timers = []
             self.addTimer(0, 10 / self.scaleFactor)
@@ -283,16 +287,22 @@ class MainApp(RuntimeClassBase):
         else:
             if self.states["/state_A"].children == []:
                 self.debugFlag = False
-            self.addTimer(0, 10 - (self.timeDiff / self.scaleFactor))
-            self.addTimer(1, 20 - (self.timeDiff / self.scaleFactor))
+            print("time left: ", 10.0 - float((self.localExecutionTime/1000.0)))
+            self.addTimer(0, 10.0 - (float((self.localExecutionTime/1000.0)) / self.scaleFactor))
+            self.addTimer(1, 20 - ((self.localExecutionTime/1000) / self.scaleFactor))
     
     def _state_A_exit(self):
         self.removeTimer(0)
         self.removeTimer(1)
         print("sim: ", self.getSimulatedTime())
         print("start: ", self.startTime)
-        print("diff: ", self.timeDiff*1000)
-        self.executionTime = self.executionTime + (self.getSimulatedTime() - (self.startTime-self.timeDiff*1000))
+        #print("diff: ", self.timeDiff*1000)
+        #self.executionTime = self.executionTime + (self.getSimulatedTime() - (self.startTime-self.timeDiff*1000))
+        self.localExecutionTime = self.localExecutionTime + (self.getSimulatedTime() - self.startTime)
+        self.executionTime = self.executionTime + (self.getSimulatedTime() - self.startTime)
+        print("local ex: ", self.localExecutionTime)
+        #self.localExecutionTime = self.getSimulatedTime() - self.startTime
+        #self.executionTime = self.getSimulatedTime() - self.cumulativeDebugTime
         print("ex: ", self.executionTime)
         if self.pauseTransitions["/state_A"].enabled_event == None:
             self.current_states.get()
@@ -394,7 +404,8 @@ class MainApp(RuntimeClassBase):
     
     def _state_Debug_enter(self):
         #print(self.getSimulatedTime())
-        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
+        #self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
+        #print("diff debug: ", self.timeDiff)
         self.debugFlag = True
         #self.executionTime = self.executionTime + self.timeDiff
         #print(self.executionTime)
@@ -402,6 +413,10 @@ class MainApp(RuntimeClassBase):
         print("Current State: ", self.current_state.name)
         print("counter: ", self.counter)
     
+    def _state_Debug_exit(self):
+        self.cumulativeDebugTime = self.getSimulatedTime() - self.executionTime
+        print("cum: ", self.cumulativeDebugTime)
+
     def continueGuard_state_A(self, parameters):
         return self.current_state == self.states["/state_A"]
     
