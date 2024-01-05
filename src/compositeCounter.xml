@@ -30,7 +30,8 @@
                             self.increment_counter();
                         </script>
                     </onexit>
-                    <transition target="../state_A2" event="goa2" port="input" />
+                    <transition target="../state_A2" event="a2" port="input" />
+                    <transition target="../state_A2" after="10" />
                 </state>
                 <state id="state_A2">
                     <onentry>
@@ -38,8 +39,8 @@
                             self.increment_counter();
                         </script>
                     </onentry>
-                    <transition target="../state_A1" event="goa1" port="input" />
-                    <transition target="/state_B" event="gob" port="input" />
+                    <transition target="../state_A1" event="a1" port="input" />
+                    <transition target="/state_B" event="b" port="input" />
                 </state>
                 <onexit>
                     <script>

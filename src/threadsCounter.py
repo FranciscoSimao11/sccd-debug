@@ -5,6 +5,8 @@
 #import compositeCounter as counter
 #import historyCounter as counter
 import parallelCounter as counter
+
+#import parallelCounterWithDebug as counter
 from sccd.runtime.statecharts_core import Event
 import threading
 

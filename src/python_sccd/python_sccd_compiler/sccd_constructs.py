@@ -636,7 +636,6 @@ class StateChart(Visitable):
         
         self.class_obj = class_obj
         self.root = StateChartNode(self, statechart_xml); #creates the whole statechart structure recursively
-
         self.states = []
         self.basics = []
         self.composites = []

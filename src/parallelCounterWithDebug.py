@@ -23,11 +23,6 @@ class MainApp(RuntimeClassBase):
         self.semantics.concurrency = StatechartSemantics.Single
         
         self.debugFlag = False
-        self.debugFlags = [False, False]
-        self.debugFlagsQ = Queue(())
-        self.debugFlagsQ.put(False)
-        self.firstTime = True
-        self.didCalcs = Queue()
         self.startTime = 0.0
         self.executionTime = 0.0
         self.localExecutionTime = 0.0
@@ -135,6 +130,11 @@ class MainApp(RuntimeClassBase):
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
         self.states["/state_Debug"].setExit(self._state_Debug_exit)
         
+        # state /state_Debug
+        self.states["/state_Debug"] = State(10, "/state_Debug", self)
+        self.states["/state_Debug"].setEnter(self._state_Debug_enter)
+        self.states["/state_Debug"].setExit(self._state_Debug_exit)
+        
         # debug events
         pauseEvent = Event("pause", self.getInPortName("input"))
         continueEvent = Event("continue", self.getInPortName("input"))
@@ -147,6 +147,7 @@ class MainApp(RuntimeClassBase):
         # add children
         self.states[""].addChild(self.states["/parallel"])
         self.states[""].addChild(self.states["/state_C"])
+        self.states[""].addChild(self.states["/state_Debug"])
         self.states["/parallel"].addChild(self.states["/parallel/state_A"])
         self.states["/parallel"].addChild(self.states["/parallel/state_B"])
         self.states["/parallel/state_A"].addChild(self.states["/parallel/state_A/state_A1"])
@@ -194,102 +195,132 @@ class MainApp(RuntimeClassBase):
         self.states["/state_C"].addTransition(_state_C_0)
         self.eventTransitions["/state_C"].append(_state_C_0)
         
+        # transition /state_Debug
+        self.eventTransitions["/state_Debug"] = []
+        _state_Debug_0 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"],self.states["/parallel/state_B/state_B1"]])
+        _state_Debug_0.setTrigger(Event("continue", self.getInPortName("input")))
+        self.states["/state_Debug"].addTransition(_state_Debug_0)
+        self.eventTransitions["/state_Debug"].append(_state_Debug_0)
+        # _state_Debug_1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"]])
+        # _state_Debug_1.setTrigger(Event("continue", self.getInPortName("input")))
+        # self.states["/state_Debug"].addTransition(_state_Debug_1)
+        # self.eventTransitions["/state_Debug"].append(_state_Debug_1)
+        
+        # transition /parallel
+        self.eventTransitions["/parallel"] = []
+        _parallel_0 = Transition(self, self.states["/parallel"], [self.states["/state_Debug"]])
+        _parallel_0.setTrigger(Event("pause", self.getInPortName("input")))
+        self.states["/parallel"].addTransition(_parallel_0)
+        self.eventTransitions["/parallel"].append(_parallel_0)
+        
         # transitions /state_Debug
         # _parallel to /state_Debug
-        _parallel_to_state_Debug = Transition(self, self.states["/parallel"], [self.states["/state_Debug"]])
-        _parallel_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel"].addTransition(_parallel_to_state_Debug)
-        self.pauseTransitions["/parallel"] = _parallel_to_state_Debug
+        # _parallel_to_state_Debug = Transition(self, self.states["/parallel"], [self.states["/state_Debug"]])
+        # _parallel_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel"].addTransition(_parallel_to_state_Debug)
+        # self.pauseTransitions["/parallel"] = _parallel_to_state_Debug
         
-        # parallel from /state_Debug
-        _state_Debug_to_parallel = Transition(self, self.states["/state_Debug"], [self.states["/parallel"]])
-        _state_Debug_to_parallel.setTrigger(continueEvent)
-        _state_Debug_to_parallel.setGuard(self.continueGuard_parallel)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel)
+        # # parallel from /state_Debug
+        # _state_Debug_to_parallel = Transition(self, self.states["/state_Debug"], [self.states["/parallel"]])
+        # _state_Debug_to_parallel.setTrigger(continueEvent)
+        # _state_Debug_to_parallel.setGuard(self.continueGuard_parallel)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel)
         
-        # _parallel_state_A to /state_Debug
-        _parallel_state_A_to_state_Debug = Transition(self, self.states["/parallel/state_A"], [self.states["/state_Debug"]])
-        _parallel_state_A_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel/state_A"].addTransition(_parallel_state_A_to_state_Debug)
-        self.pauseTransitions["/parallel/state_A"] = _parallel_state_A_to_state_Debug
+        # # _parallel_state_A to /state_Debug
+        # _parallel_state_A_to_state_Debug = Transition(self, self.states["/parallel/state_A"], [self.states["/state_Debug"]])
+        # _parallel_state_A_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel/state_A"].addTransition(_parallel_state_A_to_state_Debug)
+        # self.pauseTransitions["/parallel/state_A"] = _parallel_state_A_to_state_Debug
         
-        # parallel_state_A from /state_Debug
-        _state_Debug_to_parallel_state_A = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A"]])
-        _state_Debug_to_parallel_state_A.setTrigger(continueEvent)
-        _state_Debug_to_parallel_state_A.setGuard(self.continueGuard_parallel_state_A)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A)
+        # # parallel_state_A from /state_Debug
+        # _state_Debug_to_parallel_state_A = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A"]])
+        # _state_Debug_to_parallel_state_A.setTrigger(continueEvent)
+        # _state_Debug_to_parallel_state_A.setGuard(self.continueGuard_parallel_state_A)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A)
         
-        # _parallel_state_A_state_A1 to /state_Debug
-        _parallel_state_A_state_A1_to_state_Debug = Transition(self, self.states["/parallel/state_A/state_A1"], [self.states["/state_Debug"]])
-        _parallel_state_A_state_A1_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel/state_A/state_A1"].addTransition(_parallel_state_A_state_A1_to_state_Debug)
-        self.pauseTransitions["/parallel/state_A/state_A1"] = _parallel_state_A_state_A1_to_state_Debug
+        # # _parallel_state_A_state_A1 to /state_Debug
+        # _parallel_state_A_state_A1_to_state_Debug = Transition(self, self.states["/parallel/state_A/state_A1"], [self.states["/state_Debug"]])
+        # _parallel_state_A_state_A1_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel/state_A/state_A1"].addTransition(_parallel_state_A_state_A1_to_state_Debug)
+        # self.pauseTransitions["/parallel/state_A/state_A1"] = _parallel_state_A_state_A1_to_state_Debug
         
-        # parallel_state_A_state_A1 from /state_Debug
-        _state_Debug_to_parallel_state_A_state_A1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"]])
-        _state_Debug_to_parallel_state_A_state_A1.setTrigger(continueEvent)
-        _state_Debug_to_parallel_state_A_state_A1.setGuard(self.continueGuard_parallel_state_A_state_A1)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A1)
+        # # parallel_state_A_state_A1 from /state_Debug
+        # _state_Debug_to_parallel_state_A_state_A1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"]])
+        # _state_Debug_to_parallel_state_A_state_A1.setTrigger(continueEvent)
+        # _state_Debug_to_parallel_state_A_state_A1.setGuard(self.continueGuard_parallel_state_A_state_A1)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A1)
         
-        # _parallel_state_A_state_A2 to /state_Debug
-        _parallel_state_A_state_A2_to_state_Debug = Transition(self, self.states["/parallel/state_A/state_A2"], [self.states["/state_Debug"]])
-        _parallel_state_A_state_A2_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel/state_A/state_A2"].addTransition(_parallel_state_A_state_A2_to_state_Debug)
-        self.pauseTransitions["/parallel/state_A/state_A2"] = _parallel_state_A_state_A2_to_state_Debug
+        # # _parallel_state_A_state_A2 to /state_Debug
+        # _parallel_state_A_state_A2_to_state_Debug = Transition(self, self.states["/parallel/state_A/state_A2"], [self.states["/state_Debug"]])
+        # _parallel_state_A_state_A2_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel/state_A/state_A2"].addTransition(_parallel_state_A_state_A2_to_state_Debug)
+        # self.pauseTransitions["/parallel/state_A/state_A2"] = _parallel_state_A_state_A2_to_state_Debug
         
-        # parallel_state_A_state_A2 from /state_Debug
-        _state_Debug_to_parallel_state_A_state_A2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"]])
-        _state_Debug_to_parallel_state_A_state_A2.setTrigger(continueEvent)
-        _state_Debug_to_parallel_state_A_state_A2.setGuard(self.continueGuard_parallel_state_A_state_A2)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A2)
+        # # parallel_state_A_state_A2 from /state_Debug
+        # _state_Debug_to_parallel_state_A_state_A2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"]])
+        # _state_Debug_to_parallel_state_A_state_A2.setTrigger(continueEvent)
+        # _state_Debug_to_parallel_state_A_state_A2.setGuard(self.continueGuard_parallel_state_A_state_A2)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A2)
         
-        # _parallel_state_B to /state_Debug
-        _parallel_state_B_to_state_Debug = Transition(self, self.states["/parallel/state_B"], [self.states["/state_Debug"]])
-        _parallel_state_B_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel/state_B"].addTransition(_parallel_state_B_to_state_Debug)
-        self.pauseTransitions["/parallel/state_B"] = _parallel_state_B_to_state_Debug
+        # # _parallel_state_B to /state_Debug
+        # _parallel_state_B_to_state_Debug = Transition(self, self.states["/parallel/state_B"], [self.states["/state_Debug"]])
+        # _parallel_state_B_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel/state_B"].addTransition(_parallel_state_B_to_state_Debug)
+        # self.pauseTransitions["/parallel/state_B"] = _parallel_state_B_to_state_Debug
         
-        # parallel_state_B from /state_Debug
-        _state_Debug_to_parallel_state_B = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B"]])
-        _state_Debug_to_parallel_state_B.setTrigger(continueEvent)
-        _state_Debug_to_parallel_state_B.setGuard(self.continueGuard_parallel_state_B)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B)
+        # # parallel_state_B from /state_Debug
+        # _state_Debug_to_parallel_state_B = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B"]])
+        # _state_Debug_to_parallel_state_B.setTrigger(continueEvent)
+        # _state_Debug_to_parallel_state_B.setGuard(self.continueGuard_parallel_state_B)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B)
         
-        # _parallel_state_B_state_B1 to /state_Debug
-        _parallel_state_B_state_B1_to_state_Debug = Transition(self, self.states["/parallel/state_B/state_B1"], [self.states["/state_Debug"]])
-        _parallel_state_B_state_B1_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel/state_B/state_B1"].addTransition(_parallel_state_B_state_B1_to_state_Debug)
-        self.pauseTransitions["/parallel/state_B/state_B1"] = _parallel_state_B_state_B1_to_state_Debug
+        # # _parallel_state_B_state_B1 to /state_Debug
+        # _parallel_state_B_state_B1_to_state_Debug = Transition(self, self.states["/parallel/state_B/state_B1"], [self.states["/state_Debug"]])
+        # _parallel_state_B_state_B1_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel/state_B/state_B1"].addTransition(_parallel_state_B_state_B1_to_state_Debug)
+        # self.pauseTransitions["/parallel/state_B/state_B1"] = _parallel_state_B_state_B1_to_state_Debug
         
-        # parallel_state_B_state_B1 from /state_Debug
-        _state_Debug_to_parallel_state_B_state_B1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"]])
-        _state_Debug_to_parallel_state_B_state_B1.setTrigger(continueEvent)
-        _state_Debug_to_parallel_state_B_state_B1.setGuard(self.continueGuard_parallel_state_B_state_B1)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B1)
+        # # parallel_state_B_state_B1 from /state_Debug
+        # _state_Debug_to_parallel_state_B_state_B1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"]])
+        # _state_Debug_to_parallel_state_B_state_B1.setTrigger(continueEvent)
+        # _state_Debug_to_parallel_state_B_state_B1.setGuard(self.continueGuard_parallel_state_B_state_B1)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B1)
         
-        # _parallel_state_B_state_B2 to /state_Debug
-        _parallel_state_B_state_B2_to_state_Debug = Transition(self, self.states["/parallel/state_B/state_B2"], [self.states["/state_Debug"]])
-        _parallel_state_B_state_B2_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/parallel/state_B/state_B2"].addTransition(_parallel_state_B_state_B2_to_state_Debug)
-        self.pauseTransitions["/parallel/state_B/state_B2"] = _parallel_state_B_state_B2_to_state_Debug
+        # # _parallel_state_B_state_B2 to /state_Debug
+        # _parallel_state_B_state_B2_to_state_Debug = Transition(self, self.states["/parallel/state_B/state_B2"], [self.states["/state_Debug"]])
+        # _parallel_state_B_state_B2_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/parallel/state_B/state_B2"].addTransition(_parallel_state_B_state_B2_to_state_Debug)
+        # self.pauseTransitions["/parallel/state_B/state_B2"] = _parallel_state_B_state_B2_to_state_Debug
         
-        # parallel_state_B_state_B2 from /state_Debug
-        _state_Debug_to_parallel_state_B_state_B2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"]])
-        _state_Debug_to_parallel_state_B_state_B2.setTrigger(continueEvent)
-        _state_Debug_to_parallel_state_B_state_B2.setGuard(self.continueGuard_parallel_state_B_state_B2)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B2)
+        # # parallel_state_B_state_B2 from /state_Debug
+        # _state_Debug_to_parallel_state_B_state_B2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B2"]])
+        # _state_Debug_to_parallel_state_B_state_B2.setTrigger(continueEvent)
+        # _state_Debug_to_parallel_state_B_state_B2.setGuard(self.continueGuard_parallel_state_B_state_B2)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B2)
         
-        # _state_C to /state_Debug
-        _state_C_to_state_Debug = Transition(self, self.states["/state_C"], [self.states["/state_Debug"]])
-        _state_C_to_state_Debug.setTrigger(pauseEvent)
-        self.states["/state_C"].addTransition(_state_C_to_state_Debug)
-        self.pauseTransitions["/state_C"] = _state_C_to_state_Debug
+        # # _state_C to /state_Debug
+        # _state_C_to_state_Debug = Transition(self, self.states["/state_C"], [self.states["/state_Debug"]])
+        # _state_C_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/state_C"].addTransition(_state_C_to_state_Debug)
+        # self.pauseTransitions["/state_C"] = _state_C_to_state_Debug
         
-        # state_C from /state_Debug
-        _state_Debug_to_state_C = Transition(self, self.states["/state_Debug"], [self.states["/state_C"]])
-        _state_Debug_to_state_C.setTrigger(continueEvent)
-        _state_Debug_to_state_C.setGuard(self.continueGuard_state_C)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_state_C)
+        # # state_C from /state_Debug
+        # _state_Debug_to_state_C = Transition(self, self.states["/state_Debug"], [self.states["/state_C"]])
+        # _state_Debug_to_state_C.setTrigger(continueEvent)
+        # _state_Debug_to_state_C.setGuard(self.continueGuard_state_C)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_state_C)
+        
+        # # _state_Debug to /state_Debug
+        # _state_Debug_to_state_Debug = Transition(self, self.states["/state_Debug"], [self.states["/state_Debug"]])
+        # _state_Debug_to_state_Debug.setTrigger(pauseEvent)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_state_Debug)
+        # self.pauseTransitions["/state_Debug"] = _state_Debug_to_state_Debug
+        
+        # # state_Debug from /state_Debug
+        # _state_Debug_to_state_Debug = Transition(self, self.states["/state_Debug"], [self.states["/state_Debug"]])
+        # _state_Debug_to_state_Debug.setTrigger(continueEvent)
+        # _state_Debug_to_state_Debug.setGuard(self.continueGuard_state_Debug)
+        # self.states["/state_Debug"].addTransition(_state_Debug_to_state_Debug)
         
         varBreakpoint0 = Transition(self, self.states["/parallel"], [self.states["/state_Debug"]])
         varBreakpoint0.setTrigger(Event("_3after"))
@@ -323,37 +354,47 @@ class MainApp(RuntimeClassBase):
         varBreakpoint7.setTrigger(Event("_3after"))
         self.states["/state_C"].addTransition(varBreakpoint7)
         
+        varBreakpoint8 = Transition(self, self.states["/state_Debug"], [self.states["/state_Debug"]])
+        varBreakpoint8.setTrigger(Event("_3after"))
+        self.states["/state_Debug"].addTransition(varBreakpoint8)
+        
     
     def _parallel_enter(self):
         self.current_state = self.states["/parallel"]
         self.startTime = self.getSimulatedTime()
-
-        print("para ", self.debugFlagsQ.queue[0])
-        if self.debugFlagsQ.queue[0] == False:
+        
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             timers = []
             
+            possibleT = self.eventTransitions["/parallel"]
+            source = self.current_state
+            i = 0
+            for t in possibleT:
+                temp = Transition(self, source, t.targets)
+                name = "step" + str(i)
+                temp.setTrigger(Event(name, self.getInPortName("input")))
+                source.addTransition(temp)
+                attrs = [s.name for s in t.targets]
+                print("[event-based] type {} to move to {} ".format(name, attrs))
+                i = (i + 1)
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
             if self.states["/parallel"].children == []:
-                self.debugFlagsQ.put(False)
-                #self.debugFlagsQ.queue[0]
                 self.debugFlag = False
     
     def _parallel_exit(self):
-        if self.states["/parallel"].children == []:
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-        if self.pauseTransitions["/parallel"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel"].enabled_event == None:
+        #     pass
     
     def _parallel_state_A_enter(self):
         self.current_state = self.states["/parallel/state_A"]
         self.startTime = self.getSimulatedTime()
         
-        print("A ", self.debugFlagsQ.queue[0])
-        if self.debugFlagsQ.queue[0] == False:
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             timers = []
             
@@ -362,22 +403,18 @@ class MainApp(RuntimeClassBase):
         else:
             if self.states["/parallel/state_A"].children == []:
                 self.debugFlag = False
-                self.debugFlagsQ.put(False)
-                #self.debugFlagsQ.queue[0]
     
     def _parallel_state_A_exit(self):
-        if self.states["/parallel/state_A"].children == []:
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-        if self.pauseTransitions["/parallel/state_A"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel/state_A"].enabled_event == None:
+        #     pass
     
     def _parallel_state_B_enter(self):
         self.current_state = self.states["/parallel/state_B"]
         self.startTime = self.getSimulatedTime()
         
-        print("B ", self.debugFlagsQ.queue[0])
-        if self.debugFlagsQ.queue[0] == False:
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             timers = []
             
@@ -386,28 +423,18 @@ class MainApp(RuntimeClassBase):
         else:
             if self.states["/parallel/state_B"].children == []:
                 self.debugFlag = False
-                self.debugFlagsQ.put(False)
     
     def _parallel_state_B_exit(self):
-        if self.states["/parallel/state_B"].children == []:
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-        if self.pauseTransitions["/parallel/state_B"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel/state_B"].enabled_event == None:
+        #     pass
     
     def _parallel_state_A_state_A1_enter(self):
         self.current_state = self.states["/parallel/state_A/state_A1"]
         self.startTime = self.getSimulatedTime()
         
-        print("A1")
-        print(self.debugFlagsQ.queue)
-        print(self.debugFlags)
-        while(not self.didCalcs.empty()):
-            self.didCalcs.get()
-
-        #if self.debugFlags[0]==False and self.debugFlags[1]==False:
-        if self.debugFlagsQ.queue[0] == False:
-            self.debugFlagsQ.put(False)
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             self.increment_counter();
             timers = []
@@ -446,44 +473,21 @@ class MainApp(RuntimeClassBase):
                 self.addTimer(2, 0)
         else:
             if self.states["/parallel/state_A/state_A1"].children == []:
-                # if(self.debugFlagsQ.queue[0] == True):
-                #     self.debugFlagsQ.get()
-                #     if(self.debugFlagsQ.empty()):
-                #         self.debugFlagsQ.put(False)
-                self.debugFlagsQ.get()
-                    #if(self.debugFlagsQ.empty()):
-                self.debugFlagsQ.put(False)
                 self.debugFlag = False
-                self.debugFlags[0] = False
             self.addTimer(0, 5.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
     
     def _parallel_state_A_state_A1_exit(self):
         self.removeTimer(0)
-        print(self.didCalcs.empty())
-        if self.states["/parallel/state_A/state_A1"].children == [] and self.didCalcs.empty():
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-            # print("A1 extime calc: ", self.localExecutionTime)
-            # print("A1 simtime calc: ", self.getSimulatedTime())
-            self.didCalcs.put(True)
-            self.debugFlagsQ.get()
-            self.firstTime = True
-        if self.pauseTransitions["/parallel/state_A/state_A1"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel/state_A/state_A1"].enabled_event == None:
+        #     pass
     
     def _parallel_state_A_state_A2_enter(self):
         self.current_state = self.states["/parallel/state_A/state_A2"]
         self.startTime = self.getSimulatedTime()
         
-        print("A2")
-        print(self.debugFlagsQ.queue)
-        print(self.debugFlags)
-        while(not self.didCalcs.empty()):
-            self.didCalcs.get()
-
-        #if self.debugFlags[0]==False and self.debugFlags[1]==False:
-        if self.debugFlagsQ.queue[0] == False:
-            self.debugFlagsQ.put(False) 
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             self.increment_counter();
             timers = []
@@ -504,35 +508,18 @@ class MainApp(RuntimeClassBase):
         else:
             if self.states["/parallel/state_A/state_A2"].children == []:
                 self.debugFlag = False
-                self.debugFlags[0] = False
-                #if(self.debugFlagsQ.queue[0] == True):
-                self.debugFlagsQ.get()
-                    #if(self.debugFlagsQ.empty()):
-                self.debugFlagsQ.put(False)
     
     def _parallel_state_A_state_A2_exit(self):
-        if self.states["/parallel/state_A/state_A2"].children == [] and self.didCalcs.empty():
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-            self.didCalcs.put(True)
-            # print("A2 extime calc: ", self.localExecutionTime)
-            # print("A2 simtime calc: ", self.getSimulatedTime())
-        if self.pauseTransitions["/parallel/state_A/state_A2"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel/state_A/state_A2"].enabled_event == None:
+        #     pass
     
     def _parallel_state_B_state_B1_enter(self):
         self.current_state = self.states["/parallel/state_B/state_B1"]
         self.startTime = self.getSimulatedTime()
         
-        print("B1")
-        print(self.debugFlagsQ.queue)
-        print(self.debugFlags)
-        while(not self.didCalcs.empty()):
-            self.didCalcs.get()
-
-        #if self.debugFlags[0]==False and self.debugFlags[1]==False:
-        if self.debugFlagsQ.queue[0] == False:
-            self.debugFlagsQ.put(False)
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             self.increment_counter();
             timers = []
@@ -571,44 +558,21 @@ class MainApp(RuntimeClassBase):
                 self.addTimer(2, 0)
         else:
             if self.states["/parallel/state_B/state_B1"].children == []:
-                # self.debugFlag = False
-                # self.debugFlags[1] = False
-                self.debugFlagsQ.get()
-                    #if(self.debugFlagsQ.empty()):
-                self.debugFlagsQ.put(False)
-                # if(self.debugFlagsQ.queue[0] == True):
-                #     self.debugFlagsQ.get()
-                #     if(self.debugFlagsQ.empty()):
-                #         self.debugFlagsQ.put(False)
+                self.debugFlag = False
             self.addTimer(1, 5.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
     
     def _parallel_state_B_state_B1_exit(self):
         self.removeTimer(1)
-        self.didCalcs.empty()
-        if self.states["/parallel/state_B/state_B1"].children == [] and self.didCalcs.empty():
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-            self.didCalcs.put(True)
-            # print("B1 extime calc: ", self.localExecutionTime)
-            # print("B1 simtime calc: ", self.getSimulatedTime())
-        if self.pauseTransitions["/parallel/state_B/state_B1"].enabled_event == None:
-            self.debugFlagsQ.get()
-            self.firstTime = True
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel/state_B/state_B1"].enabled_event == None:
+        #     pass
     
     def _parallel_state_B_state_B2_enter(self):
         self.current_state = self.states["/parallel/state_B/state_B2"]
         self.startTime = self.getSimulatedTime()
         
-        print("B2")
-        print(self.debugFlagsQ.queue)
-        print(self.debugFlags)
-        while(not self.didCalcs.empty()):
-            self.didCalcs.get()
-
-        #if self.debugFlags[0]==False and self.debugFlags[1]==False:
-        if self.debugFlagsQ.queue[0] == False:
-            self.debugFlagsQ.put(False)
+        if self.debugFlag == False:
             self.localExecutionTime = 0.0
             self.increment_counter();
             timers = []
@@ -629,24 +593,12 @@ class MainApp(RuntimeClassBase):
         else:
             if self.states["/parallel/state_B/state_B2"].children == []:
                 self.debugFlag = False
-                self.debugFlags[1] = False
-                # if(self.debugFlagsQ.queue[0] == True):
-                #     self.debugFlagsQ.get()
-                #     if(self.debugFlagsQ.empty()):
-                #         self.debugFlagsQ.put(False)
-                self.debugFlagsQ.get()
-                    #if(self.debugFlagsQ.empty()):
-                self.debugFlagsQ.put(False)
     
     def _parallel_state_B_state_B2_exit(self):
-        if self.states["/parallel/state_B/state_B2"].children == [] and self.didCalcs.empty():
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-            self.didCalcs.put(True)
-            #print("B2 extime calc: ", self.localExecutionTime)
-            #print("B2 simtime calc: ", self.getSimulatedTime())
-        if self.pauseTransitions["/parallel/state_B/state_B2"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/parallel/state_B/state_B2"].enabled_event == None:
+        #     pass
     
     def _state_C_enter(self):
         self.current_state = self.states["/state_C"]
@@ -675,30 +627,48 @@ class MainApp(RuntimeClassBase):
                 self.debugFlag = False
     
     def _state_C_exit(self):
-        if self.states["/state_C"].children == []:
-            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-        if self.pauseTransitions["/state_C"].enabled_event == None:
-            pass
+        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        # if self.pauseTransitions["/state_C"].enabled_event == None:
+        #     pass
+    
+    # def _state_Debug_enter(self):
+    #     self.current_state = self.states["/state_Debug"]
+    #     self.startTime = self.getSimulatedTime()
+        
+    #     if self.debugFlag == False:
+    #         self.localExecutionTime = 0.0
+    #         self.debugFlag = True
+    #         print("DEBUG MODE")
+    #         print("Current State: ", self.current_state.name)
+    #         print("counter: ", self.counter)
+    #         timers = []
+            
+    #         possibleT = self.eventTransitions["/state_Debug"]
+    #         source = self.current_state
+    #         i = 0
+    #         for t in possibleT:
+    #             temp = Transition(self, source, t.targets)
+    #             name = "step" + str(i)
+    #             temp.setTrigger(Event(name, self.getInPortName("input")))
+    #             source.addTransition(temp)
+    #             attrs = [s.name for s in t.targets]
+    #             print("[event-based] type {} to move to {} ".format(name, attrs))
+    #             i = (i + 1)
+    #         if self.counter == 5:
+    #             self.addTimer(2, 0)
+    #     else:
+    #         if self.states["/state_Debug"].children == []:
+    #             self.debugFlag = False
+    
+    # def _state_Debug_exit(self):
+    #     self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+    #     self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+    #     if self.pauseTransitions["/state_Debug"].enabled_event == None:
+    #         pass
     
     def _state_Debug_enter(self):
         self.debugFlag = True
-        if self.firstTime:
-            self.debugFlagsQ.get()
-            self.firstTime = False
-            print("yeah mam")
-        nFlags = 0
-        while(not self.debugFlagsQ.empty()):
-            self.debugFlagsQ.get()
-            nFlags = nFlags + 1
-            print(nFlags)
-
-        print(nFlags)
-        for x in range(nFlags):
-            self.debugFlagsQ.put(True)
-        
-        self.debugFlags[0] = True
-        self.debugFlags[1] = True
         print("DEBUG MODE")
         print("Current State: ", self.current_state.name)
         print("counter: ", self.counter)
@@ -729,6 +699,9 @@ class MainApp(RuntimeClassBase):
     
     def continueGuard_state_C(self, parameters):
         return self.current_state == self.states["/state_C"]
+    
+    def continueGuard_state_Debug(self, parameters):
+        return self.current_state == self.states["/state_Debug"]
     
     def initializeStatechart(self):
         # enter default state

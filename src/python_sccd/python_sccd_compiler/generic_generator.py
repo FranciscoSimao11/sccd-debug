@@ -809,8 +809,9 @@ class GenericGenerator(Visitor):
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
                             ))
-        self.writer.addRawCode("self.current_states.put(self.current_state)")    
-        
+        #self.writer.addRawCode("self.current_states.put(self.current_state)")    
+        #self.writer.addRawCode("print(self.current_states.queue)")
+
         if self.debug_mode == 1:
             self.writer.addAssignment(
                                 GLC.SelfProperty("startTime"), 
@@ -897,6 +898,11 @@ class GenericGenerator(Visitor):
                 self.writer.add(GLC.FunctionCall(GLC.SelfProperty("removeTimer"), [str(trigger.getAfterIndex())]))
         
         if self.debug_mode == 1:
+            self.writer.beginIf(GLC.EqualsExpression(
+                                GLC.Property(GLC.MapIndexedExpression(
+                                    GLC.SelfProperty("states"),
+                                    GLC.String(parent_node.new_full_name),
+                            ), "children"), "[]"))
             self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"),
                                       GLC.AdditionExpression(
                                           GLC.SelfProperty("localExecutionTime"), 
@@ -915,6 +921,7 @@ class GenericGenerator(Visitor):
                                                   GLC.SelfProperty("startTime"))
                                       ))
 
+            self.writer.endIf()
             self.writer.beginIf(
                         GLC.EqualsExpression(
                                 GLC.Property(
@@ -931,7 +938,7 @@ class GenericGenerator(Visitor):
         if exit_method.action:
             exit_method.action.accept(self)
         
-        self.writer.addRawCode("self.current_states.get()")  #?
+        #self.writer.addRawCode("self.current_states.get()")  #?
         
         if self.debug_mode == 1:
             self.writer.endIf()

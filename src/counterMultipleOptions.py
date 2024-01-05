@@ -236,7 +236,7 @@ class MainApp(RuntimeClassBase):
     
     def _state_A_enter(self):
         self.current_state = self.states["/state_A"]
-        self.current_states.put(self.current_state)
+        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
         if self.debugFlag == False:
@@ -293,11 +293,12 @@ class MainApp(RuntimeClassBase):
         print("local Ex: ", self.localExecutionTime)
         print("Ex: ", self.executionTime)
         if self.pauseTransitions["/state_A"].enabled_event == None:
-            self.current_states.get()
+            #self.current_states.get()
+            pass
     
     def _state_B_enter(self):
         self.current_state = self.states["/state_B"]
-        self.current_states.put(self.current_state)
+        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
         if self.debugFlag == False:
@@ -327,11 +328,12 @@ class MainApp(RuntimeClassBase):
         self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
         self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
         if self.pauseTransitions["/state_B"].enabled_event == None:
-            self.current_states.get()
+            #self.current_states.get()
+            pass
     
     def _state_C_enter(self):
         self.current_state = self.states["/state_C"]
-        self.current_states.put(self.current_state)
+        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
         if self.debugFlag == False:
@@ -360,11 +362,12 @@ class MainApp(RuntimeClassBase):
         self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
         self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
         if self.pauseTransitions["/state_C"].enabled_event == None:
-            self.current_states.get()
+            #self.current_states.get()
+            pass
     
     def _state_D_enter(self):
         self.current_state = self.states["/state_D"]
-        self.current_states.put(self.current_state)
+        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
         if self.debugFlag == False:
@@ -393,7 +396,8 @@ class MainApp(RuntimeClassBase):
         self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
         self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
         if self.pauseTransitions["/state_D"].enabled_event == None:
-            self.current_states.get()
+            #self.current_states.get()
+            pass
     
     def _state_Debug_enter(self):
         self.debugFlag = True

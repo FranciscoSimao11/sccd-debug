@@ -1051,7 +1051,8 @@ class RuntimeClassBase(object):
         
         self.active = True
         
-        self.current_state = {}
+        #self.current_state = {}
+        self.current_state = []
         self.current_states = LifoQueue()
         #self.current_states = []
         self.history_values = {}
