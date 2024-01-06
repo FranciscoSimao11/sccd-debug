@@ -95,6 +95,13 @@ class ForLoopBody(Block):
 	def getForLoop(self):
 		return self.for_loop
 
+class WhileLoopBody(Block):
+	def __init__(self, while_loop):
+		Block.__init__(self)
+		self.while_loop = while_loop
+
+	def getWhileLoop(self):
+		return self.while_loop
 
 class MethodBody(Block):
 	def __init__(self, method):
@@ -322,6 +329,13 @@ class ForLoopIterateBase(ConditionalStatementBase):
 	def getIteratorIdentifier(self):
 		return self.iterator_identifier
 
+class WhileLoop(ConditionalStatementBase):
+	def __init__(self, cond_expr):
+		ConditionalStatementBase.__init__(self, WhileLoopBody(self))
+		self.cond_expr = MakeExpression(cond_expr)
+	
+	def getConditionExpression(self):
+		return self.cond_expr
 
 class ForLoopIterateArray(ForLoopIterateBase):
 	def __init__(self, array_expr, iterator_identifier):
@@ -978,6 +992,15 @@ class GenericWriterBase(Visitor):
 	def visit_VSpace(self, v):
 		self.out.write()
 
+	def visit_WhileLoop(self, cond):
+		condition = cond.getConditionExpression()
+		body = cond.getBody()
+
+		self.out.write("while (")
+		condition.accept(self)
+		self.out.extendWrite("):")
+		body.accept(self)
+
 
 class CLikeWriterBase(GenericWriterBase):
 
@@ -1034,11 +1057,19 @@ class CLikeWriterBase(GenericWriterBase):
 	def visit_IfStatement(self, if_stmt):
 		condition = if_stmt.getCondition()
 		body = if_stmt.getBody()
-
 		self.out.write("if (")
 		condition.accept(self)
 		self.out.extendWrite(")")
 		body.accept(self)
+
+	# def visit_WhileLoop(self, cond):
+	# 	condition = cond.getCondition()
+	# 	body = cond.getBody()
+
+	# 	self.out.write("while (")
+	# 	condition.accept(self)
+	# 	self.out.extendWrite(")")
+	# 	body.accept(self)
 
 	def visit_NewExpression(self, new):
 		type_expr = new.getTypeExpression()

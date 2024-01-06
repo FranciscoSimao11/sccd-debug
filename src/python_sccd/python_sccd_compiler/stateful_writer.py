@@ -94,6 +94,11 @@ class StatefulWriter:
 	def beginElseIf(self, condition):
 		self.begin(ElseIfStatement(condition, not isinstance(self.last, ElseIfStatement)))
 
+	def beginWhileLoop(self, cond_expr):
+		f = WhileLoop(cond_expr)
+		self.get().add(f)
+		self.stack.append(f.getBody())
+
 	def beginForLoopIterateArray(self, array_expr, iterator_identifier):
 		f = ForLoopIterateArray(array_expr, iterator_identifier)
 		self.get().add(f)
@@ -173,6 +178,10 @@ class StatefulWriter:
 	def endElseIf(self):
 		self.last = self.stack.pop()
 		assert isinstance(self.last, ElseIfStatement)
+
+	def endWhileLoop(self):
+		self.last = self.stack.pop()
+		assert isinstance(self.last, WhileLoopBody)
 
 	def endForLoopIterateArray(self):
 		self.last = self.stack.pop()
