@@ -22,9 +22,14 @@ class MainApp(RuntimeClassBase):
         self.semantics.priority = StatechartSemantics.SourceParent
         self.semantics.concurrency = StatechartSemantics.Single
         
-        self.debugFlag = False
-        self.startTime = 0
-        self.timeDiff = 0
+        self.debugFlags = Queue()
+        self.debugFlags.put(False)
+        self.firstTime = True
+        self.didCalcs = Queue()
+        self.startTime = 0.0
+        self.executionTime = 0.0
+        self.localExecutionTime = 0.0
+        self.cumulativeDebugTime = 0.0
         
         # set execution speed
         self.setSimulationSpeed()
@@ -106,6 +111,7 @@ class MainApp(RuntimeClassBase):
         # state /state_Debug
         self.states["/state_Debug"] = State(5, "/state_Debug", self)
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
+        self.states["/state_Debug"].setExit(self._state_Debug_exit)
         
         # debug events
         pauseEvent = Event("pause", self.getInPortName("input"))
@@ -210,13 +216,34 @@ class MainApp(RuntimeClassBase):
         _state_Debug_to_state_D.setGuard(self.continueGuard_state_D)
         self.states["/state_Debug"].addTransition(_state_Debug_to_state_D)
         
+        varBreakpoint0 = Transition(self, self.states["/state_A"], [self.states["/state_Debug"]])
+        varBreakpoint0.setTrigger(Event("_3after"))
+        self.states["/state_A"].addTransition(varBreakpoint0)
+        
+        varBreakpoint1 = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
+        varBreakpoint1.setTrigger(Event("_3after"))
+        self.states["/state_B"].addTransition(varBreakpoint1)
+        
+        varBreakpoint2 = Transition(self, self.states["/state_C"], [self.states["/state_Debug"]])
+        varBreakpoint2.setTrigger(Event("_3after"))
+        self.states["/state_C"].addTransition(varBreakpoint2)
+        
+        varBreakpoint3 = Transition(self, self.states["/state_D"], [self.states["/state_Debug"]])
+        varBreakpoint3.setTrigger(Event("_3after"))
+        self.states["/state_D"].addTransition(varBreakpoint3)
+        
     
     def _state_A_enter(self):
         self.current_state = self.states["/state_A"]
-        self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_A"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.debugFlags.queue[0] == False:
+            self.localExecutionTime = 0.0
+            if self.states["/state_A"].children == []:
+                self.debugFlags.put(False)
             self.increment_counter();
             timers = []
             self.addTimer(0, 10 / self.scaleFactor)
@@ -253,25 +280,39 @@ class MainApp(RuntimeClassBase):
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
             if self.counter == 5:
-                self.pauseTransitions["/state_A"].fire()
+                self.addTimer(2, 0)
         else:
             if self.states["/state_A"].children == []:
-                self.debugFlag = False
-            self.addTimer(0, 10 - (self.timeDiff / self.scaleFactor))
-            self.addTimer(1, 20 - (self.timeDiff / self.scaleFactor))
+                self.debugFlags.get()
+                self.debugFlags.put(False)
+            self.addTimer(0, 10.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
+            self.addTimer(1, 20.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
     
     def _state_A_exit(self):
         self.removeTimer(0)
         self.removeTimer(1)
+        if (self.states["/state_A"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_A"].enabled_event == None:
-            self.current_states.get()
+            if self.states["/state_A"].children == []:
+                self.debugFlags.get()
+                if self.debugFlags.empty():
+                    self.debugFlags.put(False)
+                self.firstTime = True
     
     def _state_B_enter(self):
         self.current_state = self.states["/state_B"]
-        self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_B"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.debugFlags.queue[0] == False:
+            self.localExecutionTime = 0.0
+            if self.states["/state_B"].children == []:
+                self.debugFlags.put(False)
             self.increment_counter();
             timers = []
             
@@ -286,23 +327,36 @@ class MainApp(RuntimeClassBase):
                 attrs = [s.name for s in t.targets]
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
-            self.pauseTransitions["/state_B"].fire()
             if self.counter == 5:
-                self.pauseTransitions["/state_B"].fire()
+                self.addTimer(2, 0)
         else:
             if self.states["/state_B"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
     
     def _state_B_exit(self):
+        if (self.states["/state_B"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_B"].enabled_event == None:
-            self.current_states.get()
+            if self.states["/state_B"].children == []:
+                self.debugFlags.get()
+                if self.debugFlags.empty():
+                    self.debugFlags.put(False)
+                self.firstTime = True
     
     def _state_C_enter(self):
         self.current_state = self.states["/state_C"]
-        self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_C"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.debugFlags.queue[0] == False:
+            self.localExecutionTime = 0.0
+            if self.states["/state_C"].children == []:
+                self.debugFlags.put(False)
             self.increment_counter();
             timers = []
             
@@ -318,21 +372,35 @@ class MainApp(RuntimeClassBase):
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
             if self.counter == 5:
-                self.pauseTransitions["/state_C"].fire()
+                self.addTimer(2, 0)
         else:
             if self.states["/state_C"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
     
     def _state_C_exit(self):
+        if (self.states["/state_C"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_C"].enabled_event == None:
-            self.current_states.get()
+            if self.states["/state_C"].children == []:
+                self.debugFlags.get()
+                if self.debugFlags.empty():
+                    self.debugFlags.put(False)
+                self.firstTime = True
     
     def _state_D_enter(self):
         self.current_state = self.states["/state_D"]
-        self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_D"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.debugFlags.queue[0] == False:
+            self.localExecutionTime = 0.0
+            if self.states["/state_D"].children == []:
+                self.debugFlags.put(False)
             self.increment_counter();
             timers = []
             
@@ -348,21 +416,40 @@ class MainApp(RuntimeClassBase):
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
             if self.counter == 5:
-                self.pauseTransitions["/state_D"].fire()
+                self.addTimer(2, 0)
         else:
             if self.states["/state_D"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
     
     def _state_D_exit(self):
+        if (self.states["/state_D"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_D"].enabled_event == None:
-            self.current_states.get()
+            if self.states["/state_D"].children == []:
+                self.debugFlags.get()
+                if self.debugFlags.empty():
+                    self.debugFlags.put(False)
+                self.firstTime = True
     
     def _state_Debug_enter(self):
-        self.timeDiff = ((self.getSimulatedTime() - self.startTime) / 1000.0)
-        self.debugFlag = True
+        if self.firstTime:
+            self.debugFlags.get()
+            self.firstTime = False
+        nFlags = 0
+        while (not self.debugFlags.empty()):
+            self.debugFlags.get()
+            nFlags = (nFlags + 1)
+        for x in range(nFlags):
+            self.debugFlags.put(True)
         print("DEBUG MODE")
         print("Current State: ", self.current_state.name)
         print("counter: ", self.counter)
+    
+    def _state_Debug_exit(self):
+        self.cumulativeDebugTime = (self.getSimulatedTime() - self.executionTime)
     
     def continueGuard_state_A(self, parameters):
         return self.current_state == self.states["/state_A"]
