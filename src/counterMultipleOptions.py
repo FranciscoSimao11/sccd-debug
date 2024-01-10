@@ -22,7 +22,10 @@ class MainApp(RuntimeClassBase):
         self.semantics.priority = StatechartSemantics.SourceParent
         self.semantics.concurrency = StatechartSemantics.Single
         
-        self.debugFlag = False
+        self.debugFlags = Queue()
+        self.firstTime = True
+        self.didCalcs = Queue()
+        self.active_states = Queue()
         self.startTime = 0.0
         self.executionTime = 0.0
         self.localExecutionTime = 0.0
@@ -78,7 +81,11 @@ class MainApp(RuntimeClassBase):
         self.counter = self.counter + 1
         print ("counter: ", self.counter)
     
-    
+    # def stopController(self, parameters):
+    #     print("EU")
+    #     self.controller.stop()
+    #     print("NOS")
+
     # builds Statechart structure
     def build_statechart_structure(self):
         
@@ -110,9 +117,13 @@ class MainApp(RuntimeClassBase):
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
         self.states["/state_Debug"].setExit(self._state_Debug_exit)
         
+        # state /state_Final
+        self.states["/state_Final"] = State(6, "/state_Final", self)
+        self.states["/state_Final"].setEnter(self._state_Final_enter)
+        
         # debug events
         pauseEvent = Event("pause", self.getInPortName("input"))
-        continueEvent = Event("continue", self.getInPortName("input"))
+        stopEvent = Event("stop", self.getInPortName("input"))
         
         # debug transitions
         self.pauseTransitions = {}
@@ -125,6 +136,7 @@ class MainApp(RuntimeClassBase):
         self.states[""].addChild(self.states["/state_C"])
         self.states[""].addChild(self.states["/state_D"])
         self.states[""].addChild(self.states["/state_Debug"])
+        self.states[""].addChild(self.states["/state_Final"])
         self.states[""].fixTree()
         self.states[""].default_state = self.states["/state_A"]
         
@@ -171,11 +183,11 @@ class MainApp(RuntimeClassBase):
         self.states["/state_A"].addTransition(_state_A_to_state_Debug)
         self.pauseTransitions["/state_A"] = _state_A_to_state_Debug
         
-        # state_A from /state_Debug
-        _state_Debug_to_state_A = Transition(self, self.states["/state_Debug"], [self.states["/state_A"]])
-        _state_Debug_to_state_A.setTrigger(continueEvent)
-        _state_Debug_to_state_A.setGuard(self.continueGuard_state_A)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_state_A)
+        # _state_A to /state_Final
+        _state_A_to_state_Final = Transition(self, self.states["/state_A"], [self.states["/state_Final"]])
+        _state_A_to_state_Final.setTrigger(stopEvent)
+        #_state_A_to_state_Final.setAction(self.stopController)
+        self.states["/state_A"].addTransition(_state_A_to_state_Final)
         
         # _state_B to /state_Debug
         _state_B_to_state_Debug = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
@@ -183,11 +195,10 @@ class MainApp(RuntimeClassBase):
         self.states["/state_B"].addTransition(_state_B_to_state_Debug)
         self.pauseTransitions["/state_B"] = _state_B_to_state_Debug
         
-        # state_B from /state_Debug
-        _state_Debug_to_state_B = Transition(self, self.states["/state_Debug"], [self.states["/state_B"]])
-        _state_Debug_to_state_B.setTrigger(continueEvent)
-        _state_Debug_to_state_B.setGuard(self.continueGuard_state_B)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_state_B)
+        # _state_B to /state_Final
+        _state_B_to_state_Final = Transition(self, self.states["/state_B"], [self.states["/state_Final"]])
+        _state_B_to_state_Final.setTrigger(stopEvent)
+        self.states["/state_B"].addTransition(_state_B_to_state_Final)
         
         # _state_C to /state_Debug
         _state_C_to_state_Debug = Transition(self, self.states["/state_C"], [self.states["/state_Debug"]])
@@ -195,11 +206,10 @@ class MainApp(RuntimeClassBase):
         self.states["/state_C"].addTransition(_state_C_to_state_Debug)
         self.pauseTransitions["/state_C"] = _state_C_to_state_Debug
         
-        # state_C from /state_Debug
-        _state_Debug_to_state_C = Transition(self, self.states["/state_Debug"], [self.states["/state_C"]])
-        _state_Debug_to_state_C.setTrigger(continueEvent)
-        _state_Debug_to_state_C.setGuard(self.continueGuard_state_C)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_state_C)
+        # _state_C to /state_Final
+        _state_C_to_state_Final = Transition(self, self.states["/state_C"], [self.states["/state_Final"]])
+        _state_C_to_state_Final.setTrigger(stopEvent)
+        self.states["/state_C"].addTransition(_state_C_to_state_Final)
         
         # _state_D to /state_Debug
         _state_D_to_state_Debug = Transition(self, self.states["/state_D"], [self.states["/state_Debug"]])
@@ -207,15 +217,10 @@ class MainApp(RuntimeClassBase):
         self.states["/state_D"].addTransition(_state_D_to_state_Debug)
         self.pauseTransitions["/state_D"] = _state_D_to_state_Debug
         
-        # state_D from /state_Debug
-        _state_Debug_to_state_D = Transition(self, self.states["/state_Debug"], [self.states["/state_D"]])
-        _state_Debug_to_state_D.setTrigger(continueEvent)
-        _state_Debug_to_state_D.setGuard(self.continueGuard_state_D)
-        self.states["/state_Debug"].addTransition(_state_Debug_to_state_D)
-        
-        breakpoint0 = Transition(self, self.states["/state_B"], [self.states["/state_Debug"]])
-        breakpoint0.setTrigger(Event("_2after"))
-        self.states["/state_B"].addTransition(breakpoint0)
+        # _state_D to /state_Final
+        _state_D_to_state_Final = Transition(self, self.states["/state_D"], [self.states["/state_Final"]])
+        _state_D_to_state_Final.setTrigger(stopEvent)
+        self.states["/state_D"].addTransition(_state_D_to_state_Final)
         
         varBreakpoint0 = Transition(self, self.states["/state_A"], [self.states["/state_Debug"]])
         varBreakpoint0.setTrigger(Event("_3after"))
@@ -236,11 +241,16 @@ class MainApp(RuntimeClassBase):
     
     def _state_A_enter(self):
         self.current_state = self.states["/state_A"]
-        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_A"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.firstTime == True:
             self.localExecutionTime = 0.0
+            if self.states["/state_A"].children == []:
+                self.debugFlags.put(False)
+                self.active_states.put(self.current_state)
             self.increment_counter();
             timers = []
             self.addTimer(0, 10 / self.scaleFactor)
@@ -277,32 +287,39 @@ class MainApp(RuntimeClassBase):
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
             if self.counter == 5:
-                self.addTimer(3, 0)
+                self.addTimer(2, 0)
         else:
             if self.states["/state_A"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
             self.addTimer(0, 10.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
             self.addTimer(1, 20.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
     
     def _state_A_exit(self):
         self.removeTimer(0)
         self.removeTimer(1)
-        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
-        #self.executionTime = self.getSimulatedTime() - self.cumulativeDebugTime
-        print("local Ex: ", self.localExecutionTime)
-        print("Ex: ", self.executionTime)
+        if (self.states["/state_A"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_A"].enabled_event == None:
-            #self.current_states.get()
-            pass
+            if self.states["/state_A"].children == []:
+                self.debugFlags.get()
+                self.firstTime = True
+                self.active_states.get()
     
     def _state_B_enter(self):
         self.current_state = self.states["/state_B"]
-        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_B"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.firstTime == True:
             self.localExecutionTime = 0.0
+            if self.states["/state_B"].children == []:
+                self.debugFlags.put(False)
+                self.active_states.put(self.current_state)
             self.increment_counter();
             timers = []
             
@@ -317,27 +334,36 @@ class MainApp(RuntimeClassBase):
                 attrs = [s.name for s in t.targets]
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
-            self.addTimer(2, 0)
             if self.counter == 5:
-                self.addTimer(3, 0)
+                self.addTimer(2, 0)
         else:
             if self.states["/state_B"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
     
     def _state_B_exit(self):
-        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        if (self.states["/state_B"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_B"].enabled_event == None:
-            #self.current_states.get()
-            pass
+            if self.states["/state_B"].children == []:
+                self.debugFlags.get()
+                self.firstTime = True
+                self.active_states.get()
     
     def _state_C_enter(self):
         self.current_state = self.states["/state_C"]
-        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_C"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.firstTime == True:
             self.localExecutionTime = 0.0
+            if self.states["/state_C"].children == []:
+                self.debugFlags.put(False)
+                self.active_states.put(self.current_state)
             self.increment_counter();
             timers = []
             
@@ -353,25 +379,35 @@ class MainApp(RuntimeClassBase):
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
             if self.counter == 5:
-                self.addTimer(3, 0)
+                self.addTimer(2, 0)
         else:
             if self.states["/state_C"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
     
     def _state_C_exit(self):
-        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        if (self.states["/state_C"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_C"].enabled_event == None:
-            #self.current_states.get()
-            pass
+            if self.states["/state_C"].children == []:
+                self.debugFlags.get()
+                self.firstTime = True
+                self.active_states.get()
     
     def _state_D_enter(self):
         self.current_state = self.states["/state_D"]
-        #self.current_states.put(self.current_state)
         self.startTime = self.getSimulatedTime()
         
-        if self.debugFlag == False:
+        if self.states["/state_D"].children == []:
+            while (not self.didCalcs.empty()):
+                self.didCalcs.get()
+        if self.firstTime == True:
             self.localExecutionTime = 0.0
+            if self.states["/state_D"].children == []:
+                self.debugFlags.put(False)
+                self.active_states.put(self.current_state)
             self.increment_counter();
             timers = []
             
@@ -387,26 +423,51 @@ class MainApp(RuntimeClassBase):
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
             if self.counter == 5:
-                self.addTimer(3, 0)
+                self.addTimer(2, 0)
         else:
             if self.states["/state_D"].children == []:
-                self.debugFlag = False
+                self.debugFlags.get()
+                self.debugFlags.put(False)
     
     def _state_D_exit(self):
-        self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
-        self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+        if (self.states["/state_D"].children == []) and self.didCalcs.empty():
+            self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
+            self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
+            self.didCalcs.put(True)
         if self.pauseTransitions["/state_D"].enabled_event == None:
-            #self.current_states.get()
-            pass
+            if self.states["/state_D"].children == []:
+                self.debugFlags.get()
+                self.firstTime = True
+                self.active_states.get()
     
     def _state_Debug_enter(self):
-        self.debugFlag = True
+        if self.firstTime:
+            self.firstTime = False
+        nFlags = 0
+        while (not self.debugFlags.empty()):
+            self.debugFlags.get()
+            nFlags = (nFlags + 1)
+        for x in range(nFlags):
+            self.debugFlags.put(True)
+        targets = list(self.active_states.queue)
+        source = self.states["/state_Debug"]
+        newTransition = Transition(self, source, targets)
+        newTransition.setTrigger(Event("continue", self.getInPortName("input")))
+        source.addTransition(newTransition)
+        
         print("DEBUG MODE")
         print("Current State: ", self.current_state.name)
         print("counter: ", self.counter)
     
     def _state_Debug_exit(self):
         self.cumulativeDebugTime = (self.getSimulatedTime() - self.executionTime)
+        targets = list(self.active_states.queue)
+        for t in targets:
+            self.pauseTransitions[t.name].enabled_event = None
+    
+    def _state_Final_enter(self):
+        print("HAHAHHA GIGA COPE")
+        self.controller.stop()
     
     def continueGuard_state_A(self, parameters):
         return self.current_state == self.states["/state_A"]
