@@ -29,7 +29,7 @@ def generate(input_file, output_file, target_language, platform, debug_mode):
 		output_file += ".py"
 	elif target_language == "javascript" and not output_file.endswith(".js") :
 		output_file += ".js"
-
+		
 	generic = sccdToGeneric(sccd, platform, debug_mode)
 	genericToTarget(generic, target_language, output_file)
 

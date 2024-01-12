@@ -6,8 +6,10 @@ Model name:   Counter
 
 """
 
+import os
 from python_sccd.python_sccd_runtime.statecharts_core import *
 from sccd.runtime.statecharts_core import *
+from sccd.compiler.utils import FileWriter
 import argparse
 
 # package "Counter"
@@ -31,6 +33,8 @@ class MainApp(RuntimeClassBase):
         self.localExecutionTime = 0.0
         self.cumulativeDebugTime = 0.0
         
+        self.tracedEvents = [] #ou devia ser uma queue?
+
         # set execution speed
         self.setSimulationSpeed()
         
@@ -129,7 +133,11 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions = {}
         self.timedTransitions = []
         self.eventTransitions = {}
-        
+        self.createdTransitions = {}
+
+        self.createdTransitions["/state_A"] = []
+        self.createdTransitions["/state_B"] = []
+
         # add children
         self.states[""].addChild(self.states["/state_A"])
         self.states[""].addChild(self.states["/state_B"])
@@ -243,6 +251,8 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_A"]
         self.startTime = self.getSimulatedTime()
         
+        self.saveEvent("state_enter " + self.current_state.name, self.startTime, [("counter", self.counter)])
+
         if self.states["/state_A"].children == []:
             while (not self.didCalcs.empty()):
                 self.didCalcs.get()
@@ -271,9 +281,13 @@ class MainApp(RuntimeClassBase):
             if iteration > 0:
                 temp = Transition(self, chosen.source, chosen.targets)
                 temp.setTrigger(Event("step", self.getInPortName("input")))
-                chosen.source.addTransition(temp)
+                if not self.listContains(self.createdTransitions["/state_A"], temp):
+                    print("ya entrei seu burro")
+                    self.createdTransitions["/state_A"].append(temp)
+                    chosen.source.addTransition(temp)
                 attrs = [s.name for s in chosen.targets]
                 print("[time-based] type step to move to {} ".format(attrs))
+                
             
             possibleT = self.eventTransitions["/state_A"]
             source = self.current_state
@@ -282,10 +296,16 @@ class MainApp(RuntimeClassBase):
                 temp = Transition(self, source, t.targets)
                 name = "step" + str(i)
                 temp.setTrigger(Event(name, self.getInPortName("input")))
-                source.addTransition(temp)
+                #if temp not in self.createdTransitions["/state_A"]:
+                if not self.listContains(self.createdTransitions["/state_A"], temp):
+                    print("ya entrei seu burro 1")
+                    self.createdTransitions["/state_A"].append(temp)
+                    source.addTransition(temp)
                 attrs = [s.name for s in t.targets]
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
+                
+
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
@@ -307,10 +327,27 @@ class MainApp(RuntimeClassBase):
                 self.debugFlags.get()
                 self.firstTime = True
                 self.active_states.get()
+
+            allTransitions = []
+            for t in self.timedTransitions:
+                source = t.source.name
+                if (source == "/state_A"):
+                    allTransitions.append(t)
+            allTransitions.extend(self.eventTransitions["/state_A"])
+            allTransitions.extend(self.createdTransitions["/state_A"])
+
+            for tr in allTransitions:
+                print(tr.enabled_event)
+                #print(tr)
+            
+                self.saveEvent("event", self.getSimulatedTime(), [("counter", self.counter)])
+            #self.createdTransitions["/state_A"] = []
     
     def _state_B_enter(self):
         self.current_state = self.states["/state_B"]
         self.startTime = self.getSimulatedTime()
+
+        self.saveEvent("state_enter "+ self.current_state.name, self.startTime, [("counter", self.counter)])
         
         if self.states["/state_B"].children == []:
             while (not self.didCalcs.empty()):
@@ -334,6 +371,7 @@ class MainApp(RuntimeClassBase):
                 attrs = [s.name for s in t.targets]
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
+                self.createdTransitions["/state_B"].append(temp)
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
@@ -351,7 +389,9 @@ class MainApp(RuntimeClassBase):
                 self.debugFlags.get()
                 self.firstTime = True
                 self.active_states.get()
-    
+            #print(self.eventTransitions["/state_B"][0].enabled_event)
+            #self.saveEvent(self.eventTransitions["/state_B"][0].enabled_event.name, self.getSimulatedTime(), [("counter", self.counter)])
+
     def _state_C_enter(self):
         self.current_state = self.states["/state_C"]
         self.startTime = self.getSimulatedTime()
@@ -466,9 +506,66 @@ class MainApp(RuntimeClassBase):
             self.pauseTransitions[t.name].enabled_event = None
     
     def _state_Final_enter(self):
-        print("HAHAHHA GIGA COPE")
+        outputName = "executionTrace.txt"
         self.controller.stop()
+        self.saveExecutionTrace(outputName)
+        exit(1)
     
+    def saveExecutionTrace(self, outputName):
+        currDir = os.getcwd()
+        for entry in os.listdir(currDir):
+            if os.path.isfile(os.path.join(currDir, entry)) and entry == outputName:
+                outputName = outputName + "_1"
+
+        exTime = "Execution Time: " + str(self.executionTime) + " ms"
+        simTime = "Simulation Time: " + str(float(self.getSimulatedTime())) + " ms"
+        debugTime = "Total Debug Time: " + str(self.cumulativeDebugTime) + " ms"
+
+        f = FileWriter(outputName)
+        f.write("Execution Info")
+        f.write("")
+        f.write(exTime)
+        f.write(simTime)
+        f.write(debugTime)
+        f.write("")
+        f.write("Events")
+        for ide, event in enumerate(self.tracedEvents):
+            eventName = event.getEventName()
+            timestamp = event.getTimestamp()
+            attributeValues = ""
+            for v in event.getAttributeValues():
+                attributeValues += v[0] + ": " + str(v[1]) + "; "
+            eventInfo = str(ide) + ". Timestamp: " + str(timestamp) +  "; Name: " + eventName + ";  Attributes: ["  + attributeValues + "]"
+            print(ide)
+            print(eventName)
+            f.write(eventInfo)
+        f.close() 
+
+    def saveEvent(self, event_name, timestamp, attribute_values):
+        self.tracedEvents.append(TracedEvent(event_name, timestamp, attribute_values))
+
+    def listContains(self, transitions, newT):
+        flag = False
+        for t in transitions:
+            # print(t.source)
+            # print(newT.source)
+            # print(t.source == newT.source)
+            # print(t.targets)
+            # print(newT.targets)
+            # print(t.targets == newT.targets)
+            # print(t.trigger.name)
+            # print(newT.trigger.name)
+            # print(t.trigger == newT.trigger)
+            # print(t.action)
+            # print(newT.action)
+            # print(t.action == newT.action)
+            # print(t.guard)
+            # print(newT.guard)
+            # print(t.guard == newT.guard)
+            if (t.source == newT.source) and (t.targets == newT.targets) and (t.trigger.name == newT.trigger.name) and (t.trigger.port == newT.trigger.port) and (t.action == newT.action) and (t.guard == newT.guard):
+                flag = True
+        return flag
+            
     def continueGuard_state_A(self, parameters):
         return self.current_state == self.states["/state_A"]
     
