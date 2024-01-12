@@ -619,6 +619,11 @@ class GenericGenerator(Visitor):
                             GLC.SelfProperty("eventTransitions"),
                             GLC.String(s.new_full_name)
                         ), "[]")
+                    self.writer.addAssignment(
+                        GLC.MapIndexedExpression(
+                            GLC.SelfProperty("createdTransitions"),
+                            GLC.String(s.new_full_name)
+                        ), "[]")
             for (i, t) in enumerate(s.transitions + s.else_transitions):
                 # instantiate new Transition instance
                 self.writer.addAssignment(
@@ -1001,6 +1006,47 @@ class GenericGenerator(Visitor):
             self.writer.addAssignment(GLC.SelfProperty("firstTime"),"True")
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("active_states"), "get")))
             self.writer.endIf()
+
+            #create allTransitions
+            self.writer.addAssignment("allTransitions", "[]")
+            self.writer.beginForLoopIterateArray(
+                GLC.SelfProperty("timedTransitions"), "t"
+            )
+            self.writer.addAssignment("source", 
+                GLC.Property(
+                    "t",
+                    GLC.Property(
+                        "source", "name"
+                    )
+                ))
+            self.writer.beginIf(
+                GLC.EqualsExpression(
+                    "source", 
+                    GLC.Property(
+                        GLC.SelfProperty("current_state"),
+                        "name"
+                        )))
+            self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "append"),["t"]))
+            self.writer.endIf()
+
+            GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
+                             [GLC.MapIndexedExpression(
+                                 GLC.SelfProperty("eventTransitions"), 
+                                 GLC.Property(
+                                    GLC.SelfProperty("current_state"),
+                                    "name"
+                                    ))])
+            GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
+                             [GLC.MapIndexedExpression(
+                                 GLC.SelfProperty("createdTransitions"), 
+                                 GLC.Property(
+                                    GLC.SelfProperty("current_state"),
+                                    "name"
+                                    ))])
+
+            #saveEvent
+
+
         # execute user-defined exit action if present
         if exit_method.action:
             exit_method.action.accept(self)
@@ -1282,6 +1328,8 @@ class GenericGenerator(Visitor):
             GLC.SelfProperty("timedTransitions"), "[]")
         self.writer.addAssignment(
             GLC.SelfProperty("eventTransitions"), "{}")
+        self.writer.addAssignment(
+            GLC.SelfProperty("createdTransitions"), "{}")
 
     def createDebugAndFinalTransitions(self, debugName, finalName, statechart):
         self.writer.addVSpace()
@@ -1586,7 +1634,6 @@ class GenericGenerator(Visitor):
         self.writer.endMethodBody()
         self.writer.endMethod()
 
-           
     def createDebugGuards(self, statechart):
         for s in statechart.states:
             if not s.is_root:
@@ -1646,7 +1693,23 @@ class GenericGenerator(Visitor):
                                     [GLC.String("step"), GLC.FunctionCall(GLC.SelfProperty("getInPortName"), [GLC.String("input")])])
             self.writer.add(GLC.FunctionCall(GLC.Property("temp", "setTrigger"), [event]))
             #self.writer.add(GLC.FunctionCall(GLC.Property("chosen", GLC.Property("source", "addTransition")), ["temp"]))
-            self.writer.addRawCode("chosen.source.addTransition(temp)")
+            
+            mapExp = GLC.MapIndexedExpression(
+                        GLC.SelfProperty("createdTransitions"),
+                        GLC.Property("current_state", "name")
+                    )
+
+            self.writer.beginIf(
+                GLC.NotExpression(
+                    GLC.FunctionCall(
+                        GLC.SelfProperty("listContains"),
+                        [mapExp, "temp"])
+                ))
+            #self.writer.addRawCode("chosen.source.addTransition(temp)")
+            
+            self.writer.add(GLC.FunctionCall(GLC.Property(mapExp, "append"),["temp"]))
+            self.writer.add(GLC.FunctionCall(GLC.Property(GLC.Property("chosen", "source"), "addTransition"),["temp"]))
+            self.writer.endif()
             self.writer.addRawCode("attrs = [s.name for s in chosen.targets]")
             self.writer.addRawCode('print("[time-based] type step to move to {} ".format(attrs))')
             self.writer.endIf()
@@ -1665,7 +1728,23 @@ class GenericGenerator(Visitor):
             event = GLC.NewExpression("Event", 
                                     ["name", GLC.FunctionCall(GLC.SelfProperty("getInPortName"), [GLC.String("input")])])
             self.writer.add(GLC.FunctionCall(GLC.Property("temp", "setTrigger"), [event]))
+
+            mapExp = GLC.MapIndexedExpression(
+                        GLC.SelfProperty("createdTransitions"),
+                        GLC.Property("current_state", "name")
+                    )
+
+            self.writer.beginIf(
+                GLC.NotExpression(
+                    GLC.FunctionCall(
+                        GLC.SelfProperty("listContains"),
+                        [mapExp, "temp"])
+                ))
+
+            self.writer.add(GLC.FunctionCall(GLC.Property(mapExp, "append"),["temp"]))
             self.writer.add(GLC.FunctionCall(GLC.Property("source","addTransition"), ["temp"]))
+            self.writer.endIf()
+
             self.writer.addRawCode("attrs = [s.name for s in t.targets]")
             self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
             self.writer.addAssignment("i", GLC.AdditionExpression("i", "1"))
@@ -1693,5 +1772,3 @@ class GenericGenerator(Visitor):
             self.writer.endIf()
 
         self.writer.endElseIf()
-
-    
