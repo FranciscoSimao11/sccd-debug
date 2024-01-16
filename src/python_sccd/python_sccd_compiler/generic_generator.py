@@ -69,7 +69,11 @@ class GenericGenerator(Visitor):
         #self.writer.addInclude(([GLC.RuntimeModuleIdentifier(), "statecharts_core"]))
         self.writer.addInclude((["python_sccd.python_sccd_runtime.statecharts_core"]))
         self.writer.addInclude((["sccd.runtime.statecharts_core"]))
+        #self.writer.addInclude((["sccd.compiler.utils"]))
         self.writer.addRawCode("import argparse")
+        self.writer.addRawCode("from sccd.compiler.utils import FileWriter")
+        self.writer.addRawCode("import os")
+
         #from python_sccd.python_sccd_runtime.statecharts_core import *
         if class_diagram.top.strip():
             self.writer.addRawCode(class_diagram.top)
@@ -367,6 +371,7 @@ class GenericGenerator(Visitor):
                 self.writer.addAssignment(GLC.SelfProperty("executionTime"), "0.0")
                 self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"), "0.0")
                 self.writer.addAssignment(GLC.SelfProperty("cumulativeDebugTime"), "0.0")
+                self.writer.addAssignment(GLC.SelfProperty("tracedEvents"), GLC.ArrayExpression())
 
             # if debug mode?
             self.writer.addVSpace()
@@ -618,12 +623,12 @@ class GenericGenerator(Visitor):
                         GLC.MapIndexedExpression(
                             GLC.SelfProperty("eventTransitions"),
                             GLC.String(s.new_full_name)
-                        ), "[]")
+                        ), GLC.ArrayExpression())
                     self.writer.addAssignment(
                         GLC.MapIndexedExpression(
                             GLC.SelfProperty("createdTransitions"),
                             GLC.String(s.new_full_name)
-                        ), "[]")
+                        ), GLC.ArrayExpression())
             for (i, t) in enumerate(s.transitions + s.else_transitions):
                 # instantiate new Transition instance
                 self.writer.addAssignment(
@@ -758,6 +763,8 @@ class GenericGenerator(Visitor):
             self.createDebugActions(debugName)
 
             self.createFinalStateEnter(finalStateName)
+
+            self.createTracer()
         
         # transition actions and guards
         for s in statechart.composites + statechart.basics:
@@ -850,12 +857,27 @@ class GenericGenerator(Visitor):
             #         GLC.SelfProperty("debugFlag"), "False"
             #         ))
 
+            self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
+            for a in self.attributes:
+                self.writer.add(
+                    GLC.FunctionCall(
+                        GLC.Property("allAttTuples", "append"), 
+                        [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
+
+            self.writer.add(
+                GLC.FunctionCall(
+                    GLC.SelfProperty("saveEvent"),
+                    [GLC.String("state_enter: " + parent_node.new_full_name), 
+                     GLC.FunctionCall(
+                         GLC.SelfProperty("getSimulatedTime")),
+                        "allAttTuples"]))
+
             self.writer.beginIf(
                     GLC.EqualsExpression(
                                 GLC.Property(GLC.MapIndexedExpression(
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
-                            ), "children"), "[]") )
+                            ), "children"), GLC.ArrayExpression()) )
             self.writer.beginWhileLoop(GLC.NotExpression(
                 GLC.FunctionCall(GLC.Property(GLC.SelfProperty("didCalcs"), "empty"))))
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("didCalcs"), "get")))
@@ -874,7 +896,7 @@ class GenericGenerator(Visitor):
                                 GLC.Property(GLC.MapIndexedExpression(
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
-                            ), "children"), "[]") )
+                            ), "children"), GLC.ArrayExpression()) )
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "put"), ["False"]))
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("active_states"), "put"), [GLC.SelfProperty("current_state")]))
             self.writer.endIf()
@@ -883,7 +905,7 @@ class GenericGenerator(Visitor):
             enter_method.action.accept(self)
             
         if self.debug_mode == 1:
-            self.writer.addAssignment("timers", "[]")
+            self.writer.addAssignment("timers", GLC.ArrayExpression())
 
         appended = False
         hasTransition = False
@@ -901,7 +923,7 @@ class GenericGenerator(Visitor):
                     appended = True
 
         if self.debug_mode == 1:
-            self.chooseNextTransition(appended)
+            self.chooseNextTransition(parent_node, appended)
             self.writer.addVSpace()
             self.chooseNextInputEvent(parent_node, hasTransition)
             
@@ -910,7 +932,7 @@ class GenericGenerator(Visitor):
                                 GLC.Property(GLC.MapIndexedExpression(
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
-                            ), "children"), "[]"))
+                            ), "children"), GLC.ArrayExpression()))
             #self.writer.addAssignment(GLC.SelfProperty("debugFlag"), "False")
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "get")))
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "put"), ["False"]))
@@ -961,7 +983,7 @@ class GenericGenerator(Visitor):
                                 GLC.Property(GLC.MapIndexedExpression(
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
-                            ), "children"), "[]"), 
+                            ), "children"), GLC.ArrayExpression()), 
                             GLC.FunctionCall(GLC.Property(GLC.SelfProperty("didCalcs"), "empty"))) )
             self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"),
                                       GLC.AdditionExpression(
@@ -998,7 +1020,7 @@ class GenericGenerator(Visitor):
                                 GLC.Property(GLC.MapIndexedExpression(
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
-                            ), "children"), "[]") )
+                            ), "children"), GLC.ArrayExpression()) )
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "get")))
             #self.writer.beginIf(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "empty")))
             #self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "put"), ["False"]))
@@ -1008,44 +1030,65 @@ class GenericGenerator(Visitor):
             self.writer.endIf()
 
             #create allTransitions
-            self.writer.addAssignment("allTransitions", "[]")
+            self.writer.addAssignment("allTransitions", GLC.ArrayExpression())
             self.writer.beginForLoopIterateArray(
                 GLC.SelfProperty("timedTransitions"), "t"
             )
-            self.writer.addAssignment("source", 
-                GLC.Property(
-                    "t",
-                    GLC.Property(
-                        "source", "name"
-                    )
-                ))
+            self.writer.addAssignment(
+                "source", GLC.Property(GLC.Property("t", "source"), "name")
+               )
             self.writer.beginIf(
                 GLC.EqualsExpression(
                     "source", 
-                    GLC.Property(
-                        GLC.SelfProperty("current_state"),
-                        "name"
-                        )))
+                    GLC.String(parent_node.new_full_name)
+                        ))
             self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "append"),["t"]))
             self.writer.endIf()
 
-            GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
+            self.writer.endForLoopIterateArray()
+
+            self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
                              [GLC.MapIndexedExpression(
                                  GLC.SelfProperty("eventTransitions"), 
-                                 GLC.Property(
-                                    GLC.SelfProperty("current_state"),
-                                    "name"
-                                    ))])
-            GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
+                                 GLC.String(parent_node.new_full_name))]))
+            self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
                              [GLC.MapIndexedExpression(
                                  GLC.SelfProperty("createdTransitions"), 
-                                 GLC.Property(
-                                    GLC.SelfProperty("current_state"),
-                                    "name"
-                                    ))])
+                                 GLC.String(parent_node.new_full_name))]))
+            self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "append"),
+                             [GLC.MapIndexedExpression(
+                                 GLC.SelfProperty("stopTransitions"), 
+                                 GLC.String(parent_node.new_full_name))]))
 
             #saveEvent
 
+            self.writer.addAssignment("event", GLC.String(""))
+            self.writer.beginForLoopIterateArray("allTransitions", "tr")
+            self.writer.beginIf(
+                GLC.NotExpression(
+                    GLC.EqualsExpression(
+                        GLC.Property("tr","enabled_event"), 
+                        GLC.NoneExpression())
+                        ))
+            self.writer.addAssignment("event", GLC.Property(GLC.Property("tr", "enabled_event"), "name"))
+            self.writer.endIf()
+            self.writer.endForLoopIterateArray()
+            #fazer isto no inicio?
+            self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
+            for a in self.attributes:
+                self.writer.add(
+                    GLC.FunctionCall(
+                        GLC.Property("allAttTuples", "append"), 
+                        [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
+
+            self.writer.add(
+                GLC.FunctionCall(
+                    GLC.SelfProperty("saveEvent"),
+                    ["event", 
+                     GLC.FunctionCall(
+                         GLC.SelfProperty("getSimulatedTime")),
+                        "allAttTuples"]))
+            
 
         # execute user-defined exit action if present
         if exit_method.action:
@@ -1325,11 +1368,13 @@ class GenericGenerator(Visitor):
         self.writer.addAssignment(
             GLC.SelfProperty("pauseTransitions"), "{}")
         self.writer.addAssignment(
-            GLC.SelfProperty("timedTransitions"), "[]")
+            GLC.SelfProperty("timedTransitions"), GLC.ArrayExpression())
         self.writer.addAssignment(
             GLC.SelfProperty("eventTransitions"), "{}")
         self.writer.addAssignment(
             GLC.SelfProperty("createdTransitions"), "{}")
+        self.writer.addAssignment(
+            GLC.SelfProperty("stopTransitions"), "{}")
 
     def createDebugAndFinalTransitions(self, debugName, finalName, statechart):
         self.writer.addVSpace()
@@ -1430,6 +1475,13 @@ class GenericGenerator(Visitor):
                     )
                 )
                 
+                self.writer.addAssignment(
+                        GLC.MapIndexedExpression(
+                                    GLC.SelfProperty("stopTransitions"),
+                                    GLC.String(s.new_full_name),
+                                ), toFinalTransName
+                        )
+
                 self.writer.addVSpace()
 
         breakpointIndex = 0
@@ -1630,7 +1682,79 @@ class GenericGenerator(Visitor):
         #create enter debug state
         self.writer.beginMethod("_" + finalName[1:] + "_enter")
         self.writer.beginMethodBody()
-        
+        self.writer.addAssignment("outputName", GLC.String("executionTrace.txt"))
+        self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("controller"), "stop"), []))
+        self.writer.add(GLC.FunctionCall(GLC.SelfProperty("saveExecutionTrace"), ["outputName"]))
+        self.writer.add(GLC.FunctionCall("exit", ["1"]))
+        self.writer.endMethodBody()
+        self.writer.endMethod()
+
+    def createTracer(self):
+        self.writer.beginMethod("saveExecutionTrace")
+        self.writer.addFormalParameter("outputName")
+        self.writer.beginMethodBody()
+        file = open("executionTracer.py").read()
+        self.writer.addRawCode(file)
+        self.writer.endMethodBody()
+        self.writer.endMethod()
+        self.writer.beginMethod("saveEvent")
+        self.writer.addFormalParameter("event_name")
+        self.writer.addFormalParameter("timestamp")
+        self.writer.addFormalParameter("attribute_values")
+        self.writer.beginMethodBody()
+
+        self.writer.add(GLC.FunctionCall(
+            GLC.Property(GLC.SelfProperty("tracedEvents"), "append"),
+            [GLC.NewExpression("TracedEvent", ["event_name", "timestamp", "attribute_values"])]
+            ))
+
+        self.writer.endMethodBody()
+        self.writer.endMethod()
+
+        self.writer.beginMethod("listContains")
+        self.writer.addFormalParameter("transitions")
+        self.writer.addFormalParameter("newTransition")
+        self.writer.beginMethodBody()
+        self.writer.addAssignment("flag", "False")
+        self.writer.beginForLoopIterateArray("transitions", "t")
+        sourceEq = GLC.EqualsExpression(
+            GLC.Property("t", "source"),
+            GLC.Property("newTransition", "source")
+        )
+        targetsEq = GLC.EqualsExpression(
+            GLC.Property("t", "targets"),
+            GLC.Property("newTransition", "targets")
+        )
+        triggerNameEq = GLC.EqualsExpression(
+            GLC.Property(
+                GLC.Property("t", "trigger"),"name"),
+            GLC.Property(
+                GLC.Property("newTransition", "trigger"),"name")
+        )
+        triggerPortEq = GLC.EqualsExpression(
+            GLC.Property(
+                GLC.Property("t", "trigger"),"port"),
+            GLC.Property(
+                GLC.Property("newTransition", "trigger"),"port")
+        )
+        actionEq = GLC.EqualsExpression(
+            GLC.Property("t", "action"),
+            GLC.Property("newTransition", "action")
+        )
+        self.writer.beginIf(
+                GLC.AndExpression(
+                    GLC.AndExpression(
+                        GLC.AndExpression(
+                            GLC.AndExpression(sourceEq, targetsEq), triggerNameEq
+                        ), triggerPortEq
+                    ), actionEq
+                )
+            )
+        self.writer.addAssignment("flag", "True")
+
+        self.writer.endIf()
+        self.writer.endForLoopIterateArray()
+        self.writer.add(GLC.ReturnStatement("flag"))
         self.writer.endMethodBody()
         self.writer.endMethod()
 
@@ -1655,7 +1779,7 @@ class GenericGenerator(Visitor):
                 self.writer.endMethodBody()
                 self.writer.endMethod()
                 
-    def chooseNextTransition(self, appended):
+    def chooseNextTransition(self, parent_node, appended):
         #self.writer.addAssignment("myTransitions", "[]")
         if appended:
             self.writer.addAssignment("iteration", "0")
@@ -1696,7 +1820,7 @@ class GenericGenerator(Visitor):
             
             mapExp = GLC.MapIndexedExpression(
                         GLC.SelfProperty("createdTransitions"),
-                        GLC.Property("current_state", "name")
+                        GLC.String(parent_node.new_full_name)
                     )
 
             self.writer.beginIf(
@@ -1709,7 +1833,7 @@ class GenericGenerator(Visitor):
             
             self.writer.add(GLC.FunctionCall(GLC.Property(mapExp, "append"),["temp"]))
             self.writer.add(GLC.FunctionCall(GLC.Property(GLC.Property("chosen", "source"), "addTransition"),["temp"]))
-            self.writer.endif()
+            self.writer.endIf()
             self.writer.addRawCode("attrs = [s.name for s in chosen.targets]")
             self.writer.addRawCode('print("[time-based] type step to move to {} ".format(attrs))')
             self.writer.endIf()
@@ -1731,7 +1855,7 @@ class GenericGenerator(Visitor):
 
             mapExp = GLC.MapIndexedExpression(
                         GLC.SelfProperty("createdTransitions"),
-                        GLC.Property("current_state", "name")
+                        GLC.String(parent_node.new_full_name)
                     )
 
             self.writer.beginIf(
