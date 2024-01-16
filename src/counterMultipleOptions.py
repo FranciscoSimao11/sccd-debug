@@ -301,9 +301,6 @@ class MainApp(RuntimeClassBase):
                 attrs = [s.name for s in t.targets]
                 print("[event-based] type {} to move to {} ".format(name, attrs))
                 i = (i + 1)
-            allAttTuples = []
-            allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /state_A", self.getSimulatedTime(), allAttTuples)
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
@@ -396,7 +393,7 @@ class MainApp(RuntimeClassBase):
                     allTransitions.append(t)
             allTransitions.extend(self.eventTransitions["/state_B"])
             allTransitions.extend(self.createdTransitions["/state_B"])
-            #allTransitions.extend(self.stopTransitions["/state_B"])
+            allTransitions.append(self.stopTransitions["/state_B"])
             event = ""
             for tr in allTransitions:
                 if not (tr.enabled_event == None):
@@ -460,7 +457,7 @@ class MainApp(RuntimeClassBase):
                     allTransitions.append(t)
             allTransitions.extend(self.eventTransitions["/state_C"])
             allTransitions.extend(self.createdTransitions["/state_C"])
-            allTransitions.extend(self.stopTransitions["/state_C"])
+            allTransitions.append(self.stopTransitions["/state_C"])
             event = ""
             for tr in allTransitions:
                 if not (tr.enabled_event == None):
@@ -524,7 +521,7 @@ class MainApp(RuntimeClassBase):
                     allTransitions.append(t)
             allTransitions.extend(self.eventTransitions["/state_D"])
             allTransitions.extend(self.createdTransitions["/state_D"])
-            allTransitions.extend(self.stopTransitions["/state_D"])
+            allTransitions.append(self.stopTransitions["/state_D"])
             event = ""
             for tr in allTransitions:
                 if not (tr.enabled_event == None):
