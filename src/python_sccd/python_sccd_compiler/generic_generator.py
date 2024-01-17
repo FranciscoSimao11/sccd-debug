@@ -841,8 +841,7 @@ class GenericGenerator(Visitor):
                                     GLC.SelfProperty("states"),
                                     GLC.String(parent_node.new_full_name),
                             ))
-        #self.writer.addRawCode("self.current_states.put(self.current_state)")    
-        #self.writer.addRawCode("print(self.current_states.queue)")
+
 
         if self.debug_mode == 1:
             self.writer.addAssignment(
@@ -850,43 +849,20 @@ class GenericGenerator(Visitor):
                                 GLC.FunctionCall(GLC.SelfProperty("getSimulatedTime"))
             )
             self.writer.addVSpace()
-            # self.writer.beginElseIf(
-            #     GLC.EqualsExpression(
-            #         GLC.SelfProperty("debugFlag"), "False"
-            #         ))
-
-            
-
-            # self.writer.beginIf(
-            #         GLC.EqualsExpression(
-            #                     GLC.Property(GLC.MapIndexedExpression(
-            #                         GLC.SelfProperty("states"),
-            #                         GLC.String(parent_node.new_full_name),
-            #                 ), "children"), GLC.ArrayExpression()) )
+          
             if parent_node.children == []:
                 self.writer.beginWhileLoop(GLC.NotExpression(
                     GLC.FunctionCall(GLC.Property(GLC.SelfProperty("didCalcs"), "empty"))))
                 self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("didCalcs"), "get")))
                 self.writer.endWhileLoop()
-            #self.writer.endIf()
-            # self.writer.beginElseIf(
-            #     GLC.EqualsExpression(
-            #             GLC.MapIndexedExpression(GLC.Property(GLC.SelfProperty("debugFlags"), "queue"), "0"), "False"
-            #         ))
-
+      
             self.writer.beginElseIf(GLC.EqualsExpression(GLC.SelfProperty("firstTime"), "True"))
 
             self.writer.addAssignment(GLC.SelfProperty("localExecutionTime"),"0.0")
-            # self.writer.beginIf(
-            #         GLC.EqualsExpression(
-            #                     GLC.Property(GLC.MapIndexedExpression(
-            #                         GLC.SelfProperty("states"),
-            #                         GLC.String(parent_node.new_full_name),
-            #                 ), "children"), GLC.ArrayExpression()) )
+
             if parent_node.children == []:
                 self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "put"), ["False"]))
                 self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("active_states"), "put"), [GLC.SelfProperty("current_state")]))
-            #self.writer.endIf()
 
 
         if enter_method.action:
@@ -933,16 +909,10 @@ class GenericGenerator(Visitor):
             self.chooseNextInputEvent(parent_node, hasTransition)
             
             self.writer.beginElse()
-            # self.writer.beginIf(GLC.EqualsExpression(
-            #                     GLC.Property(GLC.MapIndexedExpression(
-            #                         GLC.SelfProperty("states"),
-            #                         GLC.String(parent_node.new_full_name),
-            #                 ), "children"), GLC.ArrayExpression()))
+
             if parent_node.children == []:
-            #self.writer.addAssignment(GLC.SelfProperty("debugFlag"), "False")
                 self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "get")))
                 self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("debugFlags"), "put"), ["False"]))
-            #self.writer.endIf()
             
             for transition in parent_node.transitions :
                 trigger = transition.getTrigger()
@@ -960,7 +930,6 @@ class GenericGenerator(Visitor):
                                 GLC.DivisionExpression(
                                     GLC.DivisionExpression(
                                         GLC.SelfProperty("localExecutionTime"), 
-                                        #GLC.FunctionCall("float", "1000")), 
                                         "1000.0"),
                                         GLC.SelfProperty("scaleFactor"))
                                         )]
@@ -1105,10 +1074,6 @@ class GenericGenerator(Visitor):
                         GLC.FunctionCall(
                             GLC.SelfProperty("getSimulatedTime")),
                         "allAttTuples"]))
-            #self.writer.addRawCode("self.current_states.get()")  #?
-            
-            #if self.debug_mode == 1:
-                #self.writer.endIf()
         
         self.writer.endMethodBody()
         self.writer.endMethod()        
@@ -1906,14 +1871,3 @@ class GenericGenerator(Visitor):
             self.writer.endIf()
 
         self.writer.endElseIf()
-
-    def genericStateExit(self):
-        stateName = "state_name"
-        self.writer.beginMethod("gen_state_exit")
-        self.writer.addFormalParameter(stateName)
-        self.writer.beginMethodBody()
-         
-        
-
-        self.writer.endMethodBody()
-        self.writer.endMethod()
