@@ -3,15 +3,15 @@ for entry in os.listdir(currDir):
     if os.path.isfile(os.path.join(currDir, entry)) and entry == outputName:
         outputName = outputName + "_1"
 
+simTime = "Total Simulation Time: " + str(float(self.getSimulatedTime())) + " ms (includes Debug Time)"
 exTime = "Execution Time: " + str(self.executionTime) + " ms"
-simTime = "Simulation Time: " + str(float(self.getSimulatedTime())) + " ms"
 debugTime = "Total Debug Time: " + str(self.cumulativeDebugTime) + " ms"
 
 f = FileWriter(outputName)
 f.write("Execution Info")
 f.write("")
-f.write(exTime)
 f.write(simTime)
+f.write(exTime)
 f.write(debugTime)
 f.write("")
 f.write("Events")

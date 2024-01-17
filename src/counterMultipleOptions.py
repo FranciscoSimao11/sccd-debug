@@ -251,18 +251,16 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_A"]
         self.startTime = self.getSimulatedTime()
         
-        allAttTuples = []
-        allAttTuples.append(["counter", self.counter])
-        self.saveEvent("state_enter: /state_A", self.getSimulatedTime(), allAttTuples)
-        if self.states["/state_A"].children == []:
-            while (not self.didCalcs.empty()):
-                self.didCalcs.get()
+        while (not self.didCalcs.empty()):
+            self.didCalcs.get()
         if self.firstTime == True:
             self.localExecutionTime = 0.0
-            if self.states["/state_A"].children == []:
-                self.debugFlags.put(False)
-                self.active_states.put(self.current_state)
+            self.debugFlags.put(False)
+            self.active_states.put(self.current_state)
             self.increment_counter();
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_enter: /state_A", self.getSimulatedTime(), allAttTuples)
             timers = []
             self.addTimer(0, 10 / self.scaleFactor)
             timers.append(10)
@@ -304,57 +302,56 @@ class MainApp(RuntimeClassBase):
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
-            if self.states["/state_A"].children == []:
-                self.debugFlags.get()
-                self.debugFlags.put(False)
+            self.debugFlags.get()
+            self.debugFlags.put(False)
             self.addTimer(0, 10.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
             self.addTimer(1, 20.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_re-enter: /state_A", self.getSimulatedTime(), allAttTuples)
     
     def _state_A_exit(self):
         self.removeTimer(0)
         self.removeTimer(1)
-        if (self.states["/state_A"].children == []) and self.didCalcs.empty():
+        if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
             self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
             self.didCalcs.put(True)
         if self.pauseTransitions["/state_A"].enabled_event == None:
-            if self.states["/state_A"].children == []:
-                self.debugFlags.get()
-                self.firstTime = True
-                self.active_states.get()
-            allTransitions = []
-            for t in self.timedTransitions:
-                source = t.source.name
-                if source == "/state_A":
-                    allTransitions.append(t)
-            allTransitions.extend(self.eventTransitions["/state_A"])
-            allTransitions.extend(self.createdTransitions["/state_A"])
-            allTransitions.append(self.stopTransitions["/state_A"])
-            event = ""
-            for tr in allTransitions:
-                if not (tr.enabled_event == None):
-                    event = tr.enabled_event.name
-            allAttTuples = []
-            allAttTuples.append(["counter", self.counter])
-            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            self.debugFlags.get()
+            self.firstTime = True
+            self.active_states.get()
+        allTransitions = []
+        for t in self.timedTransitions:
+            source = t.source.name
+            if source == "/state_A":
+                allTransitions.append(t)
+        allTransitions.extend(self.eventTransitions["/state_A"])
+        allTransitions.extend(self.createdTransitions["/state_A"])
+        allTransitions.append(self.stopTransitions["/state_A"])
+        allTransitions.append(self.pauseTransitions["/state_A"])
+        event = ""
+        for tr in allTransitions:
+            if not (tr.enabled_event == None):
+                event = tr.enabled_event.name
+        allAttTuples = []
+        allAttTuples.append(["counter", self.counter])
+        self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_B_enter(self):
         self.current_state = self.states["/state_B"]
         self.startTime = self.getSimulatedTime()
         
-        allAttTuples = []
-        allAttTuples.append(["counter", self.counter])
-        self.saveEvent("state_enter: /state_B", self.getSimulatedTime(), allAttTuples)
-        if self.states["/state_B"].children == []:
-            while (not self.didCalcs.empty()):
-                self.didCalcs.get()
+        while (not self.didCalcs.empty()):
+            self.didCalcs.get()
         if self.firstTime == True:
             self.localExecutionTime = 0.0
-            if self.states["/state_B"].children == []:
-                self.debugFlags.put(False)
-                self.active_states.put(self.current_state)
+            self.debugFlags.put(False)
+            self.active_states.put(self.current_state)
             self.increment_counter();
-            timers = []
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_enter: /state_B", self.getSimulatedTime(), allAttTuples)
             
             possibleT = self.eventTransitions["/state_B"]
             source = self.current_state
@@ -372,53 +369,52 @@ class MainApp(RuntimeClassBase):
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
-            if self.states["/state_B"].children == []:
-                self.debugFlags.get()
-                self.debugFlags.put(False)
+            self.debugFlags.get()
+            self.debugFlags.put(False)
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_re-enter: /state_B", self.getSimulatedTime(), allAttTuples)
     
     def _state_B_exit(self):
-        if (self.states["/state_B"].children == []) and self.didCalcs.empty():
+        if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
             self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
             self.didCalcs.put(True)
         if self.pauseTransitions["/state_B"].enabled_event == None:
-            if self.states["/state_B"].children == []:
-                self.debugFlags.get()
-                self.firstTime = True
-                self.active_states.get()
-            allTransitions = []
-            for t in self.timedTransitions:
-                source = t.source.name
-                if source == "/state_B":
-                    allTransitions.append(t)
-            allTransitions.extend(self.eventTransitions["/state_B"])
-            allTransitions.extend(self.createdTransitions["/state_B"])
-            allTransitions.append(self.stopTransitions["/state_B"])
-            event = ""
-            for tr in allTransitions:
-                if not (tr.enabled_event == None):
-                    event = tr.enabled_event.name
-            allAttTuples = []
-            allAttTuples.append(["counter", self.counter])
-            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            self.debugFlags.get()
+            self.firstTime = True
+            self.active_states.get()
+        allTransitions = []
+        for t in self.timedTransitions:
+            source = t.source.name
+            if source == "/state_B":
+                allTransitions.append(t)
+        allTransitions.extend(self.eventTransitions["/state_B"])
+        allTransitions.extend(self.createdTransitions["/state_B"])
+        allTransitions.append(self.stopTransitions["/state_B"])
+        allTransitions.append(self.pauseTransitions["/state_B"])
+        event = ""
+        for tr in allTransitions:
+            if not (tr.enabled_event == None):
+                event = tr.enabled_event.name
+        allAttTuples = []
+        allAttTuples.append(["counter", self.counter])
+        self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_C_enter(self):
         self.current_state = self.states["/state_C"]
         self.startTime = self.getSimulatedTime()
         
-        allAttTuples = []
-        allAttTuples.append(["counter", self.counter])
-        self.saveEvent("state_enter: /state_C", self.getSimulatedTime(), allAttTuples)
-        if self.states["/state_C"].children == []:
-            while (not self.didCalcs.empty()):
-                self.didCalcs.get()
+        while (not self.didCalcs.empty()):
+            self.didCalcs.get()
         if self.firstTime == True:
             self.localExecutionTime = 0.0
-            if self.states["/state_C"].children == []:
-                self.debugFlags.put(False)
-                self.active_states.put(self.current_state)
+            self.debugFlags.put(False)
+            self.active_states.put(self.current_state)
             self.increment_counter();
-            timers = []
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_enter: /state_C", self.getSimulatedTime(), allAttTuples)
             
             possibleT = self.eventTransitions["/state_C"]
             source = self.current_state
@@ -436,53 +432,52 @@ class MainApp(RuntimeClassBase):
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
-            if self.states["/state_C"].children == []:
-                self.debugFlags.get()
-                self.debugFlags.put(False)
+            self.debugFlags.get()
+            self.debugFlags.put(False)
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_re-enter: /state_C", self.getSimulatedTime(), allAttTuples)
     
     def _state_C_exit(self):
-        if (self.states["/state_C"].children == []) and self.didCalcs.empty():
+        if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
             self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
             self.didCalcs.put(True)
         if self.pauseTransitions["/state_C"].enabled_event == None:
-            if self.states["/state_C"].children == []:
-                self.debugFlags.get()
-                self.firstTime = True
-                self.active_states.get()
-            allTransitions = []
-            for t in self.timedTransitions:
-                source = t.source.name
-                if source == "/state_C":
-                    allTransitions.append(t)
-            allTransitions.extend(self.eventTransitions["/state_C"])
-            allTransitions.extend(self.createdTransitions["/state_C"])
-            allTransitions.append(self.stopTransitions["/state_C"])
-            event = ""
-            for tr in allTransitions:
-                if not (tr.enabled_event == None):
-                    event = tr.enabled_event.name
-            allAttTuples = []
-            allAttTuples.append(["counter", self.counter])
-            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            self.debugFlags.get()
+            self.firstTime = True
+            self.active_states.get()
+        allTransitions = []
+        for t in self.timedTransitions:
+            source = t.source.name
+            if source == "/state_C":
+                allTransitions.append(t)
+        allTransitions.extend(self.eventTransitions["/state_C"])
+        allTransitions.extend(self.createdTransitions["/state_C"])
+        allTransitions.append(self.stopTransitions["/state_C"])
+        allTransitions.append(self.pauseTransitions["/state_C"])
+        event = ""
+        for tr in allTransitions:
+            if not (tr.enabled_event == None):
+                event = tr.enabled_event.name
+        allAttTuples = []
+        allAttTuples.append(["counter", self.counter])
+        self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_D_enter(self):
         self.current_state = self.states["/state_D"]
         self.startTime = self.getSimulatedTime()
         
-        allAttTuples = []
-        allAttTuples.append(["counter", self.counter])
-        self.saveEvent("state_enter: /state_D", self.getSimulatedTime(), allAttTuples)
-        if self.states["/state_D"].children == []:
-            while (not self.didCalcs.empty()):
-                self.didCalcs.get()
+        while (not self.didCalcs.empty()):
+            self.didCalcs.get()
         if self.firstTime == True:
             self.localExecutionTime = 0.0
-            if self.states["/state_D"].children == []:
-                self.debugFlags.put(False)
-                self.active_states.put(self.current_state)
+            self.debugFlags.put(False)
+            self.active_states.put(self.current_state)
             self.increment_counter();
-            timers = []
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_enter: /state_D", self.getSimulatedTime(), allAttTuples)
             
             possibleT = self.eventTransitions["/state_D"]
             source = self.current_state
@@ -500,35 +495,37 @@ class MainApp(RuntimeClassBase):
             if self.counter == 5:
                 self.addTimer(2, 0)
         else:
-            if self.states["/state_D"].children == []:
-                self.debugFlags.get()
-                self.debugFlags.put(False)
+            self.debugFlags.get()
+            self.debugFlags.put(False)
+            allAttTuples = []
+            allAttTuples.append(["counter", self.counter])
+            self.saveEvent("state_re-enter: /state_D", self.getSimulatedTime(), allAttTuples)
     
     def _state_D_exit(self):
-        if (self.states["/state_D"].children == []) and self.didCalcs.empty():
+        if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
             self.executionTime = (self.executionTime + (self.getSimulatedTime() - self.startTime))
             self.didCalcs.put(True)
         if self.pauseTransitions["/state_D"].enabled_event == None:
-            if self.states["/state_D"].children == []:
-                self.debugFlags.get()
-                self.firstTime = True
-                self.active_states.get()
-            allTransitions = []
-            for t in self.timedTransitions:
-                source = t.source.name
-                if source == "/state_D":
-                    allTransitions.append(t)
-            allTransitions.extend(self.eventTransitions["/state_D"])
-            allTransitions.extend(self.createdTransitions["/state_D"])
-            allTransitions.append(self.stopTransitions["/state_D"])
-            event = ""
-            for tr in allTransitions:
-                if not (tr.enabled_event == None):
-                    event = tr.enabled_event.name
-            allAttTuples = []
-            allAttTuples.append(["counter", self.counter])
-            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            self.debugFlags.get()
+            self.firstTime = True
+            self.active_states.get()
+        allTransitions = []
+        for t in self.timedTransitions:
+            source = t.source.name
+            if source == "/state_D":
+                allTransitions.append(t)
+        allTransitions.extend(self.eventTransitions["/state_D"])
+        allTransitions.extend(self.createdTransitions["/state_D"])
+        allTransitions.append(self.stopTransitions["/state_D"])
+        allTransitions.append(self.pauseTransitions["/state_D"])
+        event = ""
+        for tr in allTransitions:
+            if not (tr.enabled_event == None):
+                event = tr.enabled_event.name
+        allAttTuples = []
+        allAttTuples.append(["counter", self.counter])
+        self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_Debug_enter(self):
         if self.firstTime:
@@ -567,15 +564,15 @@ class MainApp(RuntimeClassBase):
             if os.path.isfile(os.path.join(currDir, entry)) and entry == outputName:
                 outputName = outputName + "_1"
         
+        simTime = "Total Simulation Time: " + str(float(self.getSimulatedTime())) + " ms (includes Debug Time)"
         exTime = "Execution Time: " + str(self.executionTime) + " ms"
-        simTime = "Simulation Time: " + str(float(self.getSimulatedTime())) + " ms"
         debugTime = "Total Debug Time: " + str(self.cumulativeDebugTime) + " ms"
         
         f = FileWriter(outputName)
         f.write("Execution Info")
         f.write("")
-        f.write(exTime)
         f.write(simTime)
+        f.write(exTime)
         f.write(debugTime)
         f.write("")
         f.write("Events")
