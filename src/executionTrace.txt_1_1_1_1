@@ -1,0 +1,23 @@
+Execution Info
+
+Total Simulation Time: 117272.0 ms (includes Debug Time)
+Execution Time: 101201.0 ms
+Total Debug Time: 16071.0 ms
+
+Events
+0. Timestamp: 0; Name: state_enter: /state_A;  Attributes: [counter: 1; ]
+1. Timestamp: 5989; Name: step;  Attributes: [counter: 1; ]
+2. Timestamp: 5989; Name: state_enter: /state_B;  Attributes: [counter: 2; ]
+3. Timestamp: 5989; Name: ;  Attributes: [counter: 2; ]
+4. Timestamp: 11224; Name: state_re-enter: /state_B;  Attributes: [counter: 2; ]
+5. Timestamp: 14000; Name: step0;  Attributes: [counter: 2; ]
+6. Timestamp: 14000; Name: state_enter: /state_A;  Attributes: [counter: 3; ]
+7. Timestamp: 15362; Name: step;  Attributes: [counter: 3; ]
+8. Timestamp: 15362; Name: state_enter: /state_B;  Attributes: [counter: 4; ]
+9. Timestamp: 15362; Name: ;  Attributes: [counter: 4; ]
+10. Timestamp: 20378; Name: state_re-enter: /state_B;  Attributes: [counter: 4; ]
+11. Timestamp: 21480; Name: step0;  Attributes: [counter: 4; ]
+12. Timestamp: 21480; Name: state_enter: /state_A;  Attributes: [counter: 5; ]
+13. Timestamp: 21480; Name: ;  Attributes: [counter: 5; ]
+14. Timestamp: 27300; Name: state_re-enter: /state_B;  Attributes: [counter: 5; ]
+15. Timestamp: 117272; Name: stop;  Attributes: [counter: 5; ]
