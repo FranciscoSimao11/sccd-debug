@@ -343,6 +343,10 @@ class MainApp(RuntimeClassBase):
     def _state_A_exit(self):
         self.removeTimer(0)
         self.removeTimer(1)
+        index = 2
+        for et in self.expiredTimestamps:
+            self.removeTimer(index)
+            index = (index + 1)
         
         if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
@@ -353,6 +357,9 @@ class MainApp(RuntimeClassBase):
         for b in self.breakpointTransitions["/state_A"]:
             if b.enabled_event != None:
                 found = True
+                timerIndex = int(b.enabled_event.name[1:2])
+                startingIndex = 2
+                self.expiredTimestamps[timerIndex - startingIndex] = True
         
         if (self.pauseTransitions["/state_A"].enabled_event == None) and (not found):
             self.debugFlags.get()
@@ -365,6 +372,7 @@ class MainApp(RuntimeClassBase):
             if source == "/state_A":
                 allTransitions.append(t)
         allTransitions.extend(self.eventTransitions["/state_A"])
+        allTransitions.extend(self.breakpointTransitions["/state_A"])
         allTransitions.extend(self.createdTransitions["/state_A"])
         allTransitions.append(self.stopTransitions["/state_A"])
         allTransitions.append(self.pauseTransitions["/state_A"])
@@ -409,6 +417,10 @@ class MainApp(RuntimeClassBase):
             self.saveEvent("state_re-enter: /state_B", self.getSimulatedTime(), allAttTuples)
     
     def _state_B_exit(self):
+        index = 2
+        for et in self.expiredTimestamps:
+            self.removeTimer(index)
+            index = (index + 1)
         
         if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
@@ -419,6 +431,9 @@ class MainApp(RuntimeClassBase):
         for b in self.breakpointTransitions["/state_B"]:
             if b.enabled_event != None:
                 found = True
+                timerIndex = int(b.enabled_event.name[1:2])
+                startingIndex = 2
+                self.expiredTimestamps[timerIndex - startingIndex] = True
         
         if (self.pauseTransitions["/state_B"].enabled_event == None) and (not found):
             self.debugFlags.get()
@@ -431,6 +446,7 @@ class MainApp(RuntimeClassBase):
             if source == "/state_B":
                 allTransitions.append(t)
         allTransitions.extend(self.eventTransitions["/state_B"])
+        allTransitions.extend(self.breakpointTransitions["/state_B"])
         allTransitions.extend(self.createdTransitions["/state_B"])
         allTransitions.append(self.stopTransitions["/state_B"])
         allTransitions.append(self.pauseTransitions["/state_B"])
@@ -475,6 +491,10 @@ class MainApp(RuntimeClassBase):
             self.saveEvent("state_re-enter: /state_C", self.getSimulatedTime(), allAttTuples)
     
     def _state_C_exit(self):
+        index = 2
+        for et in self.expiredTimestamps:
+            self.removeTimer(index)
+            index = (index + 1)
         
         if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
@@ -485,6 +505,9 @@ class MainApp(RuntimeClassBase):
         for b in self.breakpointTransitions["/state_C"]:
             if b.enabled_event != None:
                 found = True
+                timerIndex = int(b.enabled_event.name[1:2])
+                startingIndex = 2
+                self.expiredTimestamps[timerIndex - startingIndex] = True
         
         if (self.pauseTransitions["/state_C"].enabled_event == None) and (not found):
             self.debugFlags.get()
@@ -497,6 +520,7 @@ class MainApp(RuntimeClassBase):
             if source == "/state_C":
                 allTransitions.append(t)
         allTransitions.extend(self.eventTransitions["/state_C"])
+        allTransitions.extend(self.breakpointTransitions["/state_C"])
         allTransitions.extend(self.createdTransitions["/state_C"])
         allTransitions.append(self.stopTransitions["/state_C"])
         allTransitions.append(self.pauseTransitions["/state_C"])
@@ -541,6 +565,10 @@ class MainApp(RuntimeClassBase):
             self.saveEvent("state_re-enter: /state_D", self.getSimulatedTime(), allAttTuples)
     
     def _state_D_exit(self):
+        index = 2
+        for et in self.expiredTimestamps:
+            self.removeTimer(index)
+            index = (index + 1)
         
         if self.didCalcs.empty():
             self.localExecutionTime = (self.localExecutionTime + (self.getSimulatedTime() - self.startTime))
@@ -551,6 +579,9 @@ class MainApp(RuntimeClassBase):
         for b in self.breakpointTransitions["/state_D"]:
             if b.enabled_event != None:
                 found = True
+                timerIndex = int(b.enabled_event.name[1:2])
+                startingIndex = 2
+                self.expiredTimestamps[timerIndex - startingIndex] = True
         
         if (self.pauseTransitions["/state_D"].enabled_event == None) and (not found):
             self.debugFlags.get()
@@ -563,6 +594,7 @@ class MainApp(RuntimeClassBase):
             if source == "/state_D":
                 allTransitions.append(t)
         allTransitions.extend(self.eventTransitions["/state_D"])
+        allTransitions.extend(self.breakpointTransitions["/state_D"])
         allTransitions.extend(self.createdTransitions["/state_D"])
         allTransitions.append(self.stopTransitions["/state_D"])
         allTransitions.append(self.pauseTransitions["/state_D"])
