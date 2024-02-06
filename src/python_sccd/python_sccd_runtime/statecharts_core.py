@@ -834,6 +834,9 @@ class State:
     
     def addTransition(self, transition):
         self.transitions.append(transition)
+
+    def resetTransitions(self):
+        self.transitions.clear()
         
     def setEnter(self, enter):
         self.enter = enter
@@ -1003,7 +1006,7 @@ class Transition:
                         break
                     
     def __repr__(self):
-        return "Transition(%s, %s)" % (self.source, self.targets[0])
+        return "Transition(%s, %s)" % (self.source, self.targets)
 
 class RuntimeClassBase(object):
     __metaclass__  = abc.ABCMeta
@@ -1341,7 +1344,22 @@ class SmallStepState(object):
     def hasCandidates(self):
         return len(self.candidates) > 0
 
-class Breakpoint(object):
-    def __init__(self, location_state):
-        self.location_state = location_state
+class TracedEvent(object):
+    def __init__(self, event_name, timestamp, attribute_values):
+        self.event_name = event_name
+        self.timestamp = timestamp
+        self.attribute_values = attribute_values
+
+    def getEventName(self):
+        return self.event_name
+    
+    def getTimestamp(self):
+        return self.timestamp
+    
+    def getAttributeValues(self):
+        return self.attribute_values
+    
+# class Breakpoint(object):
+#     def __init__(self, location_state):
+#         self.location_state = location_state
     
