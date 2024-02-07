@@ -640,6 +640,11 @@ class GenericGenerator(Visitor):
                         ), GLC.ArrayExpression())
                     self.writer.addAssignment(
                         GLC.MapIndexedExpression(
+                            GLC.SelfProperty("timedTransitions"),
+                            GLC.String(s.new_full_name)
+                        ), GLC.ArrayExpression())
+                    self.writer.addAssignment(
+                        GLC.MapIndexedExpression(
                             GLC.SelfProperty("createdTransitions"),
                             GLC.String(s.new_full_name)
                         ), GLC.ArrayExpression())
@@ -743,12 +748,23 @@ class GenericGenerator(Visitor):
                 
                 if self.debug_mode == 1:
                     if t.trigger.is_after:
+                        # self.writer.add(
+                        #     GLC.FunctionCall(
+                        #         GLC.Property(
+                        #             GLC.SelfProperty("timedTransitions"),
+                        #             "append"),
+                        #             ["%s_%i" % (s.friendly_name, i)]
+                        #     ))
                         self.writer.add(
                             GLC.FunctionCall(
                                 GLC.Property(
-                                    GLC.SelfProperty("timedTransitions"),
-                                    "append"),
-                                    ["%s_%i" % (s.friendly_name, i)]
+                                    GLC.MapIndexedExpression(
+                                        GLC.SelfProperty("timedTransitions"),
+                                        GLC.String(s.new_full_name)
+                                    ),
+                                    "append"
+                                ),
+                                ["%s_%i" % (s.friendly_name, i)]
                             ))
                     elif t.trigger.event:
                         self.writer.add(
@@ -1128,22 +1144,26 @@ class GenericGenerator(Visitor):
 
             #create allTransitions
             self.writer.addAssignment("allTransitions", GLC.ArrayExpression())
-            self.writer.beginForLoopIterateArray(
-                GLC.SelfProperty("timedTransitions"), "t"
-            )
-            self.writer.addAssignment(
-                "source", GLC.Property(GLC.Property("t", "source"), "name")
-                )
-            self.writer.beginIf(
-                GLC.EqualsExpression(
-                    "source", 
-                    GLC.String(parent_node.new_full_name)
-                        ))
-            self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "append"),["t"]))
-            self.writer.endIf()
+            # self.writer.beginForLoopIterateArray(
+            #     GLC.SelfProperty("timedTransitions"), "t"
+            # )
+            # self.writer.addAssignment(
+            #     "source", GLC.Property(GLC.Property("t", "source"), "name")
+            #     )
+            # self.writer.beginIf(
+            #     GLC.EqualsExpression(
+            #         "source", 
+            #         GLC.String(parent_node.new_full_name)
+            #             ))
+            # self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "append"),["t"]))
+            # self.writer.endIf()
 
-            self.writer.endForLoopIterateArray()
+            # self.writer.endForLoopIterateArray()
             #if parent_node.children == []:
+            self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
+                                [GLC.MapIndexedExpression(
+                                    GLC.SelfProperty("timedTransitions"), 
+                                    GLC.String(parent_node.new_full_name))]))
             self.writer.add(GLC.FunctionCall(GLC.Property("allTransitions", "extend"),
                                 [GLC.MapIndexedExpression(
                                     GLC.SelfProperty("eventTransitions"), 
@@ -1469,8 +1489,10 @@ class GenericGenerator(Visitor):
         self.writer.addComment("debug transitions")
         self.writer.addAssignment(
             GLC.SelfProperty("pauseTransitions"), "{}")
+        # self.writer.addAssignment(
+        #     GLC.SelfProperty("timedTransitions"), GLC.ArrayExpression())
         self.writer.addAssignment(
-            GLC.SelfProperty("timedTransitions"), GLC.ArrayExpression())
+            GLC.SelfProperty("timedTransitions"), "{}")
         self.writer.addAssignment(
             GLC.SelfProperty("eventTransitions"), "{}")
         self.writer.addAssignment(
@@ -2043,15 +2065,16 @@ class GenericGenerator(Visitor):
         self.writer.addAssignment("chosen", "None")
         self.writer.addAssignment("lowest", GLC.MapIndexedExpression("timers", "0"))
         
-        self.writer.beginForLoopIterateArray(GLC.SelfProperty("timedTransitions"),"t")
-        self.writer.addAssignment("port", GLC.Property(GLC.Property("t", "trigger"), "port"))
-        self.writer.addAssignment("source", GLC.Property(GLC.Property("t", "source"), "name"))
-        self.writer.beginIf(
-            GLC.AndExpression(
-            GLC.EqualsExpression("source", GLC.Property(
-                GLC.SelfProperty("current_state"), "name")),
-            GLC.DifferentExpression("port", GLC.String("input")))
-        )
+        self.writer.beginForLoopIterateArray(GLC.ArrayIndexedExpression(
+            GLC.SelfProperty("timedTransitions"), "state_name"),"t")
+        # self.writer.addAssignment("port", GLC.Property(GLC.Property("t", "trigger"), "port"))
+        # self.writer.addAssignment("source", GLC.Property(GLC.Property("t", "source"), "name"))
+        # self.writer.beginIf(
+        #     GLC.AndExpression(
+        #     GLC.EqualsExpression("source", GLC.Property(
+        #         GLC.SelfProperty("current_state"), "name")),
+        #     GLC.DifferentExpression("port", GLC.String("input")))
+        # )
             
         #myTransitions.append((t, timers[iteration]))
         self.writer.beginIf(
@@ -2062,8 +2085,30 @@ class GenericGenerator(Visitor):
         self.writer.addAssignment("chosen", "t")
         self.writer.endIf()
         self.writer.addAssignment("iteration", "iteration + 1")
-        self.writer.endIf()
+        #self.writer.endIf()
         self.writer.endForLoopIterateArray()
+
+        # self.writer.beginForLoopIterateArray(GLC.SelfProperty("timedTransitions"),"t")
+        # self.writer.addAssignment("port", GLC.Property(GLC.Property("t", "trigger"), "port"))
+        # self.writer.addAssignment("source", GLC.Property(GLC.Property("t", "source"), "name"))
+        # self.writer.beginIf(
+        #     GLC.AndExpression(
+        #     GLC.EqualsExpression("source", GLC.Property(
+        #         GLC.SelfProperty("current_state"), "name")),
+        #     GLC.DifferentExpression("port", GLC.String("input")))
+        # )
+            
+        # #myTransitions.append((t, timers[iteration]))
+        # self.writer.beginIf(
+        #     GLC.GreaterThanOrEqualExpression("lowest", 
+        #         GLC.MapIndexedExpression("timers", "iteration")))
+        # self.writer.addAssignment("lowest", 
+        #         GLC.MapIndexedExpression("timers", "iteration"))
+        # self.writer.addAssignment("chosen", "t")
+        # self.writer.endIf()
+        # self.writer.addAssignment("iteration", "iteration + 1")
+        # self.writer.endIf()
+        # self.writer.endForLoopIterateArray()
         
         self.writer.beginIf(GLC.GreaterThanExpression("iteration", "0"))
         #self.writer.add(GLC.FunctionCall("print", ["chosen"]))
