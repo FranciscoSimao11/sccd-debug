@@ -14,7 +14,6 @@
         <method name="increment_counter">
             <body>
                 self.counter = self.counter + 1
-                print ("counter: ", self.counter)
             </body>
         </method>
         <scxml initial="parallel">

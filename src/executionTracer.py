@@ -22,7 +22,7 @@ for ide, event in enumerate(self.tracedEvents):
     for v in event.getAttributeValues():
         attributeValues += v[0] + ": " + str(v[1]) + "; "
     eventInfo = str(ide) + ". Timestamp: " + str(timestamp) +  "; Name: " + eventName + ";  Attributes: ["  + attributeValues + "]"
-    print(ide)
-    print(eventName)
+    # print(ide)
+    # print(eventName)
     f.write(eventInfo)
 f.close() 

@@ -3,6 +3,8 @@ python setup.py install --user
 
 del counterMultipleOptions.py counterMultipleOptions.pyc
 
+@rem del sccd_no_ui.py sccd_no_ui.pyc
+
 @REM del counterMultipleOptionsUsable.py counterMultipleOptionsUsable.pyc
 
 @rem del parallelCounter.py parallelCounter.pyc
@@ -26,6 +28,7 @@ del counterMultipleOptions.py counterMultipleOptions.pyc
 @REM python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 parallelCounterWithDebug.xml
 
 python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 counterMultipleOptions.xml
+@rem python -m python_sccd.python_sccd_compiler.sccdc -p eventloop -l python -d 0 sccd_no_ui.xml
 
 @REM python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 0 counterMultipleOptionsUsable.xml
 @REM python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 counterScripts.xml

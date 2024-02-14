@@ -43,6 +43,7 @@ class MainApp(RuntimeClassBase):
         # user defined attributes
         self.counter = 0
         
+        
         # call user defined constructor
         MainApp.user_defined_constructor(self)
     
@@ -59,9 +60,9 @@ class MainApp(RuntimeClassBase):
         if args['simType'] is not None:
             args['simType'] = float(args['simType'])
             args['factor'] = float(args['factor'])
+            self.scaleFactor = 1.0
             if args['simType'] == 0:
                 print("Real-time Simulation")
-                self.scaleFactor = 1.0
             elif args['simType'] == 1:
                 print("Scaled Real-time Simulation")
                 if args['factor'] is not None and args['factor'] > 0:
@@ -80,9 +81,7 @@ class MainApp(RuntimeClassBase):
     
     # user defined method
     def increment_counter(self):
-        print(self.current_state.name)
         self.counter = self.counter + 1
-        print ("counter: ", self.counter)
     
     
     # builds Statechart structure
@@ -283,9 +282,11 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/state_A")
+            event = "entry: /state_A"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /state_A", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             
             timers = []
             if self.scaleFactor != float("inf"):
@@ -293,17 +294,18 @@ class MainApp(RuntimeClassBase):
                 timers.append(10)
                 self.addTimer(1, 20 / self.scaleFactor)
                 timers.append(20)
+                self.process_time_transitions(timers, "/state_A")
             else:
                 self.addTimer(0, 10.0 / self.scaleFactor)
-            self.process_time_transitions(timers, "/state_A")
             self.process_event_transitions("/state_A")
             
         else:
             self.addTimer(0, 10.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
             self.addTimer(1, 20.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
+            event = "re-entry: /state_A"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /state_A", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_A_exit(self):
         self.removeTimer(0)
@@ -342,7 +344,7 @@ class MainApp(RuntimeClassBase):
         allTransitions.extend(self.createdTransitions["/state_A"])
         allTransitions.append(self.stopTransitions["/state_A"])
         allTransitions.append(self.pauseTransitions["/state_A"])
-        event = "state_exit: /state_A"
+        event = "exit: /state_A"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -363,15 +365,18 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/state_B")
+            event = "entry: /state_B"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /state_B", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             self.process_event_transitions("/state_B")
             
         else:
+            event = "re-entry: /state_B"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /state_B", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_B_exit(self):
         index = 2
@@ -408,7 +413,7 @@ class MainApp(RuntimeClassBase):
         allTransitions.extend(self.createdTransitions["/state_B"])
         allTransitions.append(self.stopTransitions["/state_B"])
         allTransitions.append(self.pauseTransitions["/state_B"])
-        event = "state_exit: /state_B"
+        event = "exit: /state_B"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -429,15 +434,18 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/state_C")
+            event = "entry: /state_C"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /state_C", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             self.process_event_transitions("/state_C")
             
         else:
+            event = "re-entry: /state_C"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /state_C", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_C_exit(self):
         index = 2
@@ -474,7 +482,7 @@ class MainApp(RuntimeClassBase):
         allTransitions.extend(self.createdTransitions["/state_C"])
         allTransitions.append(self.stopTransitions["/state_C"])
         allTransitions.append(self.pauseTransitions["/state_C"])
-        event = "state_exit: /state_C"
+        event = "exit: /state_C"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -495,15 +503,18 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/state_D")
+            event = "entry: /state_D"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /state_D", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             self.process_event_transitions("/state_D")
             
         else:
+            event = "re-entry: /state_D"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /state_D", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _state_D_exit(self):
         index = 2
@@ -540,7 +551,7 @@ class MainApp(RuntimeClassBase):
         allTransitions.extend(self.createdTransitions["/state_D"])
         allTransitions.append(self.stopTransitions["/state_D"])
         allTransitions.append(self.pauseTransitions["/state_D"])
-        event = "state_exit: /state_D"
+        event = "exit: /state_D"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -598,7 +609,7 @@ class MainApp(RuntimeClassBase):
         i = 0
         for t in possibleT:
             temp = Transition(self, source, t.targets)
-            name = "step" + str(i)
+            name = ("step" + str(i))
             temp.setTrigger(Event(name, self.getInPortName("input")))
             if not self.listContains(self.createdTransitions[state_name], temp):
                 self.createdTransitions[state_name].append(temp)
@@ -606,6 +617,10 @@ class MainApp(RuntimeClassBase):
             attrs = [s.name for s in t.targets]
             print("[event-based] type {} to move to {} ".format(name, attrs))
             i = (i + 1)
+    
+    def print_internal_state(self, state_name):
+        print(state_name)
+        print("counter" + ": ", self.counter)
     
     def saveExecutionTrace(self, outputName):
         currDir = os.getcwd()
@@ -632,8 +647,8 @@ class MainApp(RuntimeClassBase):
             for v in event.getAttributeValues():
                 attributeValues += v[0] + ": " + str(v[1]) + "; "
             eventInfo = str(ide) + ". Timestamp: " + str(timestamp) +  "; Name: " + eventName + ";  Attributes: ["  + attributeValues + "]"
-            print(ide)
-            print(eventName)
+            # print(ide)
+            # print(eventName)
             f.write(eventInfo)
         f.close() 
     
@@ -661,8 +676,13 @@ class MainApp(RuntimeClassBase):
     
     def initializeStatechart(self):
         # enter default state
+        event = "start"
+        allAttTuples = []
+        allAttTuples.append(["counter", self.counter])
+        self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
         self.default_targets = self.states["/state_A"].getEffectiveTargetStates()
         RuntimeClassBase.initializeStatechart(self)
+        
 
 class ObjectManager(ObjectManagerBase):
     def __init__(self, controller):

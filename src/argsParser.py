@@ -6,9 +6,9 @@ args = vars(parser.parse_args())
 if args['simType'] is not None:
     args['simType'] = float(args['simType'])
     args['factor'] = float(args['factor'])
+    self.scaleFactor = 1.0
     if args['simType'] == 0:
         print("Real-time Simulation")
-        self.scaleFactor = 1.0
     elif args['simType'] == 1:
         print("Scaled Real-time Simulation")
         if args['factor'] is not None and args['factor'] > 0:

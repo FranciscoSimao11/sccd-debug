@@ -277,6 +277,9 @@ class GenericGenerator(Visitor):
             self.writer.beginMethodBody()
             self.writer.addComment("enter default state")
             
+            self.writer.addAssignment("event", GLC.String("start"))
+            self.createTracingEvent()
+
             # get effective target of initial transition
             self.writer.addAssignment(
                 GLC.SelfProperty("default_targets"),
@@ -404,8 +407,9 @@ class GenericGenerator(Visitor):
                     self.writer.addAssignment(GLC.SelfProperty(attribute.name), attribute.init_value)
                 self.attributes.append(attribute)
             
-
         self.writer.addVSpace()
+        
+
         self.writer.addComment("call user defined constructor")
         self.writer.beginSuperClassMethodCall(constructor.parent_class.name, "user_defined_constructor")
         for p in constructor.getParams():
@@ -482,8 +486,8 @@ class GenericGenerator(Visitor):
         for p in method.parameters:
             p.accept(self)
         self.writer.beginMethodBody()
-        if self.debug_mode == 1:
-            self.writer.add(GLC.FunctionCall("print", [GLC.Property(GLC.SelfProperty("current_state"), "name")]))
+        # if self.debug_mode == 1:
+        #     self.writer.add(GLC.FunctionCall("print", [GLC.Property(GLC.SelfProperty("current_state"), "name")]))
         #self.writer.add(GLC.FunctionCall("print", [GLC.String("Current State: "), GLC.Property(GLC.SelfProperty("current_state"), "name")]))
         self.writer.addRawCode(method.body)
         self.writer.endMethodBody()
@@ -807,6 +811,8 @@ class GenericGenerator(Visitor):
             
             self.chooseNextInputEvent()
 
+            self.printInternalState()
+
             self.createTracer()
         
         # transition actions and guards
@@ -894,7 +900,9 @@ class GenericGenerator(Visitor):
             )
             self.writer.addVSpace()
             timerIndex = self.handleTimeBreakpoints(timerIndex)
-          
+
+            
+
             if parent_node.children == []:
                 self.writer.beginWhileLoop(GLC.NotExpression(
                     GLC.FunctionCall(GLC.Property(GLC.SelfProperty("didCalcs"), "empty"))))
@@ -916,20 +924,10 @@ class GenericGenerator(Visitor):
 
         if self.debug_mode == 1:
             self.writer.add(GLC.VSpace())
-            self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
-            for a in self.attributes:
-                self.writer.add(
-                    GLC.FunctionCall(
-                        GLC.Property("allAttTuples", "append"), 
-                        [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
-
-            self.writer.add(
-                GLC.FunctionCall(
-                    GLC.SelfProperty("saveEvent"),
-                    [GLC.String("state_enter: " + parent_node.new_full_name), 
-                     GLC.FunctionCall(
-                         GLC.SelfProperty("getSimulatedTime")),
-                        "allAttTuples"]))
+            self.writer.add(GLC.FunctionCall(GLC.SelfProperty("print_internal_state"), [GLC.String(parent_node.new_full_name)]))
+            
+            self.writer.addAssignment("event", GLC.String("entry: " + parent_node.new_full_name))
+            self.createTracingEvent()
             
             if parent_node.has_timers:
                 self.writer.add(GLC.VSpace())
@@ -961,7 +959,12 @@ class GenericGenerator(Visitor):
 
         if self.debug_mode == 1:
 
+            if appended or hasTransition:
+                self.writer.add(GLC.FunctionCall("print", [GLC.String("Available Transition Options:")]))
+
             if appended:
+                self.writer.add(GLC.FunctionCall(GLC.SelfProperty("process_time_transitions"),
+                                                 ["timers", GLC.String(parent_node.new_full_name)]))
                 self.writer.endIf()
                 
                 lowest = timers[0]
@@ -974,8 +977,7 @@ class GenericGenerator(Visitor):
                 self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(lowest[1]), GLC.DivisionExpression(str(lowest[0]), GLC.SelfProperty("scaleFactor")), ]))
                 self.writer.endElse()
     
-                self.writer.add(GLC.FunctionCall(GLC.SelfProperty("process_time_transitions"),
-                                                 ["timers", GLC.String(parent_node.new_full_name)]))
+                
             if hasTransition:
                 self.writer.add(GLC.FunctionCall(GLC.SelfProperty("process_event_transitions"),
                                                  [GLC.String(parent_node.new_full_name)]))
@@ -1013,25 +1015,9 @@ class GenericGenerator(Visitor):
                                         )]
                                         ))
         
-            self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
-            for a in self.attributes:
-                self.writer.add(
-                    GLC.FunctionCall(
-                        GLC.Property("allAttTuples", "append"), 
-                        [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
-
-            self.writer.add(
-                GLC.FunctionCall(
-                    GLC.SelfProperty("saveEvent"),
-                    [GLC.String("state_re-enter: " + parent_node.new_full_name), 
-                     GLC.FunctionCall(
-                         GLC.SelfProperty("getSimulatedTime")),
-                        "allAttTuples"]))  
-
-            
+            self.writer.addAssignment("event", GLC.String("re-entry: " + parent_node.new_full_name))
+            self.createTracingEvent()
             self.writer.endElse()
-
-                  
         
         self.writer.endMethodBody()
         self.writer.endMethod()
@@ -1189,7 +1175,7 @@ class GenericGenerator(Visitor):
                                     GLC.SelfProperty("pauseTransitions"), 
                                     GLC.String(parent_node.new_full_name))]))
             #saveEvent
-            self.writer.addAssignment("event", GLC.String("state_exit: " + parent_node.new_full_name))
+            self.writer.addAssignment("event", GLC.String("exit: " + parent_node.new_full_name))
             self.writer.beginForLoopIterateArray("allTransitions", "tr")
             self.writer.beginIf(
                 GLC.NotExpression(
@@ -1206,21 +1192,22 @@ class GenericGenerator(Visitor):
             )
             self.writer.endIf()
             self.writer.endForLoopIterateArray()
+            
+            self.createTracingEvent()
+            # self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
+            # for a in self.attributes:
+            #     self.writer.add(
+            #         GLC.FunctionCall(
+            #             GLC.Property("allAttTuples", "append"), 
+            #             [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
 
-            self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
-            for a in self.attributes:
-                self.writer.add(
-                    GLC.FunctionCall(
-                        GLC.Property("allAttTuples", "append"), 
-                        [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
-
-            self.writer.add(
-                GLC.FunctionCall(
-                    GLC.SelfProperty("saveEvent"),
-                    ["event", 
-                        GLC.FunctionCall(
-                            GLC.SelfProperty("getSimulatedTime")),
-                        "allAttTuples"]))
+            # self.writer.add(
+            #     GLC.FunctionCall(
+            #         GLC.SelfProperty("saveEvent"),
+            #         ["event", 
+            #             GLC.FunctionCall(
+            #                 GLC.SelfProperty("getSimulatedTime")),
+            #             "allAttTuples"]))
         
         self.writer.endMethodBody()
         self.writer.endMethod()        
@@ -2156,7 +2143,8 @@ class GenericGenerator(Visitor):
         
         transition = GLC.NewExpression("Transition", [GLC.SelfExpression(), "source", GLC.Property("t", "targets")])
         self.writer.addAssignment("temp", transition)
-        self.writer.addRawCode('name = "step" + str(i)')
+        self.writer.addAssignment("name", GLC.AdditionExpression(GLC.String("step"), GLC.FunctionCall("str", ["i"])))
+        #self.writer.addRawCode('name = "step" + str(i)')
         event = GLC.NewExpression("Event", 
                                 ["name", GLC.FunctionCall(GLC.SelfProperty("getInPortName"), [GLC.String("input")])])
         self.writer.add(GLC.FunctionCall(GLC.Property("temp", "setTrigger"), [event]))
@@ -2232,4 +2220,34 @@ class GenericGenerator(Visitor):
 
         return timerIndex
 
-        
+    def printInternalState(self):
+        self.writer.beginMethod("print_internal_state")
+        self.writer.addFormalParameter("state_name")
+        self.writer.beginMethodBody()
+        self.writer.add(GLC.FunctionCall("print", ["state_name"]))
+        for a in self.attributes:
+            self.writer.add(GLC.FunctionCall("print", [
+                    GLC.AdditionExpression(
+                        GLC.String(a.name), GLC.String(": ")
+                    ), 
+                    GLC.SelfProperty(a.name)
+            ]))
+
+        self.writer.endMethodBody()
+        self.writer.endMethod()
+
+    def createTracingEvent(self):
+        self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())
+        for a in self.attributes:
+            self.writer.add(
+                GLC.FunctionCall(
+                    GLC.Property("allAttTuples", "append"), 
+                    [GLC.ArrayExpression([GLC.String(a.name), GLC.SelfProperty(a.name)])]))
+
+        self.writer.add(
+            GLC.FunctionCall(
+                GLC.SelfProperty("saveEvent"),
+                ["event", 
+                    GLC.FunctionCall(
+                        GLC.SelfProperty("getSimulatedTime")),
+                    "allAttTuples"]))
