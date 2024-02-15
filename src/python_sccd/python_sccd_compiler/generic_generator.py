@@ -69,10 +69,13 @@ class GenericGenerator(Visitor):
         #self.writer.addInclude(([GLC.RuntimeModuleIdentifier(), "statecharts_core"]))
         self.writer.addInclude((["python_sccd.python_sccd_runtime.statecharts_core"]))
         self.writer.addInclude((["sccd.runtime.statecharts_core"]))
+        self.writer.addInclude((["colors"]))
+
         #self.writer.addInclude((["sccd.compiler.utils"]))
         self.writer.addRawCode("import argparse")
         self.writer.addRawCode("from sccd.compiler.utils import FileWriter")
         self.writer.addRawCode("import os")
+       # self.writer.addRawCode("from colors import *")
 
         #from python_sccd.python_sccd_runtime.statecharts_core import *
         if class_diagram.top.strip():
@@ -960,7 +963,14 @@ class GenericGenerator(Visitor):
         if self.debug_mode == 1:
 
             if appended or hasTransition:
-                self.writer.add(GLC.FunctionCall("print", [GLC.String("Available Transition Options:")]))
+                self.writer.add(
+                    GLC.FunctionCall("print", 
+                                     [GLC.AdditionExpression(
+                                        GLC.AdditionExpression(
+                                            GLC.Property(
+                                                GLC.Property("colors", "fg"), "lightgreen"),
+                                                GLC.String("Available Transition Options:")), 
+                                                GLC.Property("colors", "reset"))]))
 
             if appended:
                 self.writer.add(GLC.FunctionCall(GLC.SelfProperty("process_time_transitions"),
@@ -983,6 +993,10 @@ class GenericGenerator(Visitor):
                                                  [GLC.String(parent_node.new_full_name)]))
             self.writer.add(GLC.VSpace())
             self.handleBreakpoints(parent_node, timerIndex)
+
+            #self.writer.addRawCode('print("> "),')
+            self.printPrompt(parent_node.new_full_name)
+
             self.writer.endElseIf()
             # self.chooseNextTransition(parent_node, appended)
             # self.writer.addVSpace()
@@ -1017,6 +1031,10 @@ class GenericGenerator(Visitor):
         
             self.writer.addAssignment("event", GLC.String("re-entry: " + parent_node.new_full_name))
             self.createTracingEvent()
+
+            #self.writer.addRawCode('print("> "),')
+            self.printPrompt(parent_node.new_full_name)
+
             self.writer.endElse()
         
         self.writer.endMethodBody()
@@ -1905,13 +1923,23 @@ class GenericGenerator(Visitor):
         #self.writer.endForLoopIterateArray()
 
         self.writer.addVSpace()
-
+        self.writer.addRawCode('print(colors.fg.lightred),')
         self.writer.add(GLC.FunctionCall("print",[GLC.String("DEBUG MODE")]))
         #self.writer.add(GLC.FunctionCall("print", [GLC.String("Current State: "), GLC.Property(GLC.SelfProperty("current_state"), "name")]))
         self.writer.add(GLC.RawCode('print("Current State: {}".format(states_names))'))
         for atr in self.attributes:
-            self.writer.add(GLC.FunctionCall("print",[GLC.String(atr.name + ": "), GLC.SelfProperty(atr.name)]))
-                                                
+            self.writer.add(
+                GLC.FunctionCall("print", [
+                    GLC.FunctionCall(
+                        GLC.Property(
+                            GLC.AdditionExpression(
+                            GLC.String(atr.name), GLC.String(": {}")
+                        ), "format"), [GLC.SelfProperty(atr.name)]
+                    )
+                ]))
+        self.writer.addRawCode('print(colors.reset),')        
+        #self.writer.addRawCode('print("> "),')
+        self.printPrompt(debugName)
         
         self.writer.endMethodBody()
         self.writer.endMethod()
@@ -2124,7 +2152,16 @@ class GenericGenerator(Visitor):
         self.writer.add(GLC.FunctionCall(GLC.Property(GLC.Property("chosen", "source"), "addTransition"),["temp"]))
         self.writer.endIf()
         self.writer.addRawCode("attrs = [s.name for s in chosen.targets]")
-        self.writer.addRawCode('print("[time-based] type step to move to {} ".format(attrs))')
+        #self.writer.addRawCode('print("[time-based] type step to move to {} ".format(attrs))')
+        # GLC.AdditionExpression(
+        #                                 GLC.AdditionExpression(
+        #                                     GLC.Property(
+        #                                         GLC.Property("colors", "fg"), "green"),
+        #                                         GLC.String("Available Transition Options:")), 
+        #                                         GLC.Property("colors", "reset"))
+
+        self.writer.addRawCode('print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.reset).format(attrs, lowest))')
+
         self.writer.endIf()
 
         self.writer.endMethodBody()
@@ -2166,7 +2203,9 @@ class GenericGenerator(Visitor):
         self.writer.endIf()
 
         self.writer.addRawCode("attrs = [s.name for s in t.targets]")
-        self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
+        #self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
+
+        self.writer.addRawCode('print((colors.fg.lightgreen + "[event-based]"  + colors.fg.lightgrey +" type " + colors.fg.pink +"{}"+ colors.fg.lightgrey + " to move to "+ colors.fg.cyan + "{}" + colors.fg.lightgrey +" and simulate event "+ colors.fg.pink + "{}"+ colors.reset).format(name, attrs, t.trigger.name))')
         self.writer.addAssignment("i", GLC.AdditionExpression("i", "1"))
         self.writer.endForLoopIterateArray()
 
@@ -2224,17 +2263,43 @@ class GenericGenerator(Visitor):
         self.writer.beginMethod("print_internal_state")
         self.writer.addFormalParameter("state_name")
         self.writer.beginMethodBody()
-        self.writer.add(GLC.FunctionCall("print", ["state_name"]))
+        self.writer.add(GLC.FunctionCall("print", [
+            GLC.AdditionExpression(
+                GLC.Property(
+                    GLC.Property("colors", "fg"), "cyan") ,"state_name")]))
+        
+        #  self.writer.add(GLC.FunctionCall("print", [
+        #     GLC.AdditionExpression(
+        #         GLC.Property(
+        #             GLC.Property("colors", "fg"), "cyan") ,"state_name")]))
         for a in self.attributes:
-            self.writer.add(GLC.FunctionCall("print", [
+            # self.writer.add(GLC.FunctionCall("print", [
+            #         GLC.AdditionExpression(
+            #             GLC.String(a.name), GLC.String(": ")
+            #         ), 
+            #         GLC.SelfProperty(a.name)
+            # ]))
+            self.writer.add(
+                GLC.FunctionCall("print", [
                     GLC.AdditionExpression(
-                        GLC.String(a.name), GLC.String(": ")
-                    ), 
-                    GLC.SelfProperty(a.name)
-            ]))
+                    GLC.Property(
+                        GLC.Property("colors", "fg"), "cyan"),
+                    GLC.FunctionCall(
+                        GLC.Property(
+                            GLC.AdditionExpression(
+                            GLC.String(a.name), GLC.AdditionExpression(
+                                GLC.String(": {}"), GLC.Property("colors", "reset"))
+                        ), "format"), [GLC.SelfProperty(a.name)]
+                    ))
+                ]))
 
         self.writer.endMethodBody()
         self.writer.endMethod()
+
+    def printPrompt(self, state):
+        #self.writer.addRawCode('print(colors.fg.green+"['+ state +'] > "+colors.reset),')
+        self.writer.addRawCode('print(colors.fg.lightgrey +"['+ state +'] > "+colors.reset),')
+
 
     def createTracingEvent(self):
         self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())

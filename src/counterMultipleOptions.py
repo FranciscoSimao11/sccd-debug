@@ -8,6 +8,7 @@ Model name:   Counter
 
 from python_sccd.python_sccd_runtime.statecharts_core import *
 from sccd.runtime.statecharts_core import *
+from colors import *
 import argparse
 from sccd.compiler.utils import FileWriter
 import os
@@ -43,7 +44,6 @@ class MainApp(RuntimeClassBase):
         # user defined attributes
         self.counter = 0
         
-        
         # call user defined constructor
         MainApp.user_defined_constructor(self)
     
@@ -62,18 +62,18 @@ class MainApp(RuntimeClassBase):
             args['factor'] = float(args['factor'])
             self.scaleFactor = 1.0
             if args['simType'] == 0:
-                print("Real-time Simulation")
+                print(colors.fg.yellow+"Real-time Simulation")
             elif args['simType'] == 1:
-                print("Scaled Real-time Simulation")
+                print(colors.fg.yellow+"Scaled Real-time Simulation")
                 if args['factor'] is not None and args['factor'] > 0:
                     self.scaleFactor = args['factor']
             elif args['simType'] == 2:
-                print("As-fast-as-possible Simulation")
+                print(colors.fg.yellow+"As-fast-as-possible Simulation")
                 self.scaleFactor = float('inf')
             else:
-                print("Invalid simulation type. Defaulting to Real-time Simulation")
+                print(colors.fg.yellow+"Invalid simulation type. Defaulting to Real-time Simulation")
                 self.scaleFactor = 1.0
-            print("Scale Factor: {}".format(self.scaleFactor))
+            print(colors.fg.yellow+"Scale Factor: {}".format(self.scaleFactor)+colors.reset)
     
     def user_defined_destructor(self):
         pass
@@ -294,11 +294,13 @@ class MainApp(RuntimeClassBase):
                 timers.append(10)
                 self.addTimer(1, 20 / self.scaleFactor)
                 timers.append(20)
+                print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
                 self.process_time_transitions(timers, "/state_A")
             else:
                 self.addTimer(0, 10.0 / self.scaleFactor)
             self.process_event_transitions("/state_A")
             
+            print(colors.fg.lightgrey +"[/state_A] > "+colors.reset),
         else:
             self.addTimer(0, 10.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
             self.addTimer(1, 20.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
@@ -306,6 +308,7 @@ class MainApp(RuntimeClassBase):
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/state_A] > "+colors.reset),
     
     def _state_A_exit(self):
         self.removeTimer(0)
@@ -370,13 +373,16 @@ class MainApp(RuntimeClassBase):
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
             self.process_event_transitions("/state_B")
             
+            print(colors.fg.lightgrey +"[/state_B] > "+colors.reset),
         else:
             event = "re-entry: /state_B"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/state_B] > "+colors.reset),
     
     def _state_B_exit(self):
         index = 2
@@ -439,13 +445,16 @@ class MainApp(RuntimeClassBase):
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
             self.process_event_transitions("/state_C")
             
+            print(colors.fg.lightgrey +"[/state_C] > "+colors.reset),
         else:
             event = "re-entry: /state_C"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/state_C] > "+colors.reset),
     
     def _state_C_exit(self):
         index = 2
@@ -508,13 +517,16 @@ class MainApp(RuntimeClassBase):
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
             self.process_event_transitions("/state_D")
             
+            print(colors.fg.lightgrey +"[/state_D] > "+colors.reset),
         else:
             event = "re-entry: /state_D"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
             self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/state_D] > "+colors.reset),
     
     def _state_D_exit(self):
         index = 2
@@ -569,9 +581,12 @@ class MainApp(RuntimeClassBase):
         source.addTransition(newTransition)
         states_names = [s.name for s in targets]
         
+        print(colors.fg.lightred),
         print("DEBUG MODE")
         print("Current State: {}".format(states_names))
-        print("counter: ", self.counter)
+        print("counter" + ": {}".format(self.counter))
+        print(colors.reset),
+        print(colors.fg.lightgrey +"[/state_Debug] > "+colors.reset),
     
     def _state_Debug_exit(self):
         self.cumulativeDebugTime = (self.getSimulatedTime() - self.executionTime)
@@ -601,7 +616,7 @@ class MainApp(RuntimeClassBase):
                 self.createdTransitions[state_name].append(temp)
                 chosen.source.addTransition(temp)
             attrs = [s.name for s in chosen.targets]
-            print("[time-based] type step to move to {} ".format(attrs))
+            print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.reset).format(attrs, lowest))
     
     def process_event_transitions(self, state_name):
         possibleT = self.eventTransitions[state_name]
@@ -615,12 +630,12 @@ class MainApp(RuntimeClassBase):
                 self.createdTransitions[state_name].append(temp)
                 source.addTransition(temp)
             attrs = [s.name for s in t.targets]
-            print("[event-based] type {} to move to {} ".format(name, attrs))
+            print((colors.fg.lightgreen + "[event-based]"  + colors.fg.lightgrey +" type " + colors.fg.pink +"{}"+ colors.fg.lightgrey + " to move to "+ colors.fg.cyan + "{}" + colors.fg.lightgrey +" and simulate event "+ colors.fg.pink + "{}"+ colors.reset).format(name, attrs, t.trigger.name))
             i = (i + 1)
     
     def print_internal_state(self, state_name):
-        print(state_name)
-        print("counter" + ": ", self.counter)
+        print(colors.fg.cyan + state_name)
+        print(colors.fg.cyan + "counter" + (": {}" + colors.reset).format(self.counter))
     
     def saveExecutionTrace(self, outputName):
         currDir = os.getcwd()
@@ -682,7 +697,6 @@ class MainApp(RuntimeClassBase):
         self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
         self.default_targets = self.states["/state_A"].getEffectiveTargetStates()
         RuntimeClassBase.initializeStatechart(self)
-        
 
 class ObjectManager(ObjectManagerBase):
     def __init__(self, controller):

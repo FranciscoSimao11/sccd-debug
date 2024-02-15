@@ -16,7 +16,7 @@ if __name__ == '__main__':
     
     def raw_inputter():
         while 1:
-            controller.addInput(Event(raw_input(), "input", []))
+            controller.addInput(Event(raw_input(""), "input", []))
     input_thread = threading.Thread(target=raw_inputter)
     input_thread.daemon = True
     input_thread.start()

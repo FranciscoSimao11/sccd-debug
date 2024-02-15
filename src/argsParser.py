@@ -8,15 +8,15 @@ if args['simType'] is not None:
     args['factor'] = float(args['factor'])
     self.scaleFactor = 1.0
     if args['simType'] == 0:
-        print("Real-time Simulation")
+        print(colors.fg.yellow+"Real-time Simulation")
     elif args['simType'] == 1:
-        print("Scaled Real-time Simulation")
+        print(colors.fg.yellow+"Scaled Real-time Simulation")
         if args['factor'] is not None and args['factor'] > 0:
             self.scaleFactor = args['factor']
     elif args['simType'] == 2:
-        print("As-fast-as-possible Simulation")
+        print(colors.fg.yellow+"As-fast-as-possible Simulation")
         self.scaleFactor = float('inf')
     else:
-        print("Invalid simulation type. Defaulting to Real-time Simulation")
+        print(colors.fg.yellow+"Invalid simulation type. Defaulting to Real-time Simulation")
         self.scaleFactor = 1.0
-    print("Scale Factor: {}".format(self.scaleFactor))
+    print(colors.fg.yellow+"Scale Factor: {}".format(self.scaleFactor)+colors.reset)
