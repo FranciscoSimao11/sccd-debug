@@ -1,0 +1,22 @@
+Execution Info
+
+Total Simulation Time: 179649.0 ms (includes Debug Time)
+Execution Time: 179649.0 ms
+Total Debug Time: 0.0 ms
+
+Events
+0. Timestamp: 0; Name: start;  Attributes: [counter: 0; ]
+1. Timestamp: 0; Name: entry: /parallel;  Attributes: [counter: 0; ]
+2. Timestamp: 0; Name: entry: /parallel/state_A;  Attributes: [counter: 0; ]
+3. Timestamp: 0; Name: entry: /parallel/state_A/state_A1;  Attributes: [counter: 1; ]
+4. Timestamp: 0; Name: entry: /parallel/state_B;  Attributes: [counter: 1; ]
+5. Timestamp: 0; Name: entry: /parallel/state_B/state_B1;  Attributes: [counter: 2; ]
+6. Timestamp: 5000; Name: exit: /parallel/state_A/state_A1 - _0after;  Attributes: [counter: 2; ]
+7. Timestamp: 5000; Name: entry: /parallel/state_A/state_A2;  Attributes: [counter: 3; ]
+8. Timestamp: 5000; Name: exit: /parallel/state_B/state_B1 - _1after;  Attributes: [counter: 3; ]
+9. Timestamp: 5000; Name: entry: /parallel/state_B/state_B2;  Attributes: [counter: 4; ]
+10. Timestamp: 179649; Name: exit: /parallel/state_B/state_B2 - stop;  Attributes: [counter: 4; ]
+11. Timestamp: 179649; Name: exit: /parallel/state_A/state_A2 - stop;  Attributes: [counter: 4; ]
+12. Timestamp: 179649; Name: exit: /parallel/state_B - stop;  Attributes: [counter: 4; ]
+13. Timestamp: 179649; Name: exit: /parallel/state_A - stop;  Attributes: [counter: 4; ]
+14. Timestamp: 179649; Name: exit: /parallel - stop;  Attributes: [counter: 4; ]

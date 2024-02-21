@@ -480,7 +480,10 @@ class StateChartNode(Visitable):
             self.is_history = True            
         else :
             return
-                            
+        self.has_parallel_ancestor = False
+        if not self.is_root:
+            self.has_parallel_ancestor = True if self.parent.has_parallel_ancestor == True or self.parent.is_parallel_state == True else False 
+
         self.resolveName(xml_element)
         #self.parseConflictAttribute(xml_element)
         self.parseEnterActions(xml_element)

@@ -8,6 +8,7 @@ Model name:   Composite Counter
 
 from python_sccd.python_sccd_runtime.statecharts_core import *
 from sccd.runtime.statecharts_core import *
+from colors import *
 import argparse
 from sccd.compiler.utils import FileWriter
 import os
@@ -59,20 +60,20 @@ class MainApp(RuntimeClassBase):
         if args['simType'] is not None:
             args['simType'] = float(args['simType'])
             args['factor'] = float(args['factor'])
+            self.scaleFactor = 1.0
             if args['simType'] == 0:
-                print("Real-time Simulation")
-                self.scaleFactor = 1.0
+                print(colors.fg.yellow+"Real-time Simulation")
             elif args['simType'] == 1:
-                print("Scaled Real-time Simulation")
+                print(colors.fg.yellow+"Scaled Real-time Simulation")
                 if args['factor'] is not None and args['factor'] > 0:
                     self.scaleFactor = args['factor']
             elif args['simType'] == 2:
-                print("As-fast-as-possible Simulation")
+                print(colors.fg.yellow+"As-fast-as-possible Simulation")
                 self.scaleFactor = float('inf')
             else:
-                print("Invalid simulation type. Defaulting to Real-time Simulation")
+                print(colors.fg.yellow+"Invalid simulation type. Defaulting to Real-time Simulation")
                 self.scaleFactor = 1.0
-            print("Scale Factor: {}".format(self.scaleFactor))
+            print(colors.fg.yellow+"Scale Factor: {}".format(self.scaleFactor)+colors.reset)
     
     def user_defined_destructor(self):
         pass
@@ -80,9 +81,7 @@ class MainApp(RuntimeClassBase):
     
     # user defined method
     def increment_counter(self):
-        print(self.current_state.name)
         self.counter = self.counter + 1
-        print ("counter: ", self.counter)
     
     
     # builds Statechart structure
@@ -147,7 +146,7 @@ class MainApp(RuntimeClassBase):
         
         # debug transitions
         self.pauseTransitions = {}
-        self.timedTransitions = []
+        self.timedTransitions = {}
         self.eventTransitions = {}
         self.createdTransitions = {}
         self.stopTransitions = {}
@@ -172,16 +171,18 @@ class MainApp(RuntimeClassBase):
         
         # transition /parallel/state_A/state_A1
         self.eventTransitions["/parallel/state_A/state_A1"] = []
+        self.timedTransitions["/parallel/state_A/state_A1"] = []
         self.createdTransitions["/parallel/state_A/state_A1"] = []
         self.timeBreakpointTransitions["/parallel/state_A/state_A1"] = []
         self.genBreakpointTransitions["/parallel/state_A/state_A1"] = []
         _parallel_state_A_state_A1_0 = Transition(self, self.states["/parallel/state_A/state_A1"], [self.states["/parallel/state_A/state_A2"]])
         _parallel_state_A_state_A1_0.setTrigger(Event("_0after"))
         self.states["/parallel/state_A/state_A1"].addTransition(_parallel_state_A_state_A1_0)
-        self.timedTransitions.append(_parallel_state_A_state_A1_0)
+        self.timedTransitions["/parallel/state_A/state_A1"].append(_parallel_state_A_state_A1_0)
         
         # transition /parallel/state_A/state_A2
         self.eventTransitions["/parallel/state_A/state_A2"] = []
+        self.timedTransitions["/parallel/state_A/state_A2"] = []
         self.createdTransitions["/parallel/state_A/state_A2"] = []
         self.timeBreakpointTransitions["/parallel/state_A/state_A2"] = []
         self.genBreakpointTransitions["/parallel/state_A/state_A2"] = []
@@ -192,16 +193,18 @@ class MainApp(RuntimeClassBase):
         
         # transition /parallel/state_B/state_B1
         self.eventTransitions["/parallel/state_B/state_B1"] = []
+        self.timedTransitions["/parallel/state_B/state_B1"] = []
         self.createdTransitions["/parallel/state_B/state_B1"] = []
         self.timeBreakpointTransitions["/parallel/state_B/state_B1"] = []
         self.genBreakpointTransitions["/parallel/state_B/state_B1"] = []
         _parallel_state_B_state_B1_0 = Transition(self, self.states["/parallel/state_B/state_B1"], [self.states["/parallel/state_B/state_B2"]])
         _parallel_state_B_state_B1_0.setTrigger(Event("_1after"))
         self.states["/parallel/state_B/state_B1"].addTransition(_parallel_state_B_state_B1_0)
-        self.timedTransitions.append(_parallel_state_B_state_B1_0)
+        self.timedTransitions["/parallel/state_B/state_B1"].append(_parallel_state_B_state_B1_0)
         
         # transition /parallel/state_B/state_B2
         self.eventTransitions["/parallel/state_B/state_B2"] = []
+        self.timedTransitions["/parallel/state_B/state_B2"] = []
         self.createdTransitions["/parallel/state_B/state_B2"] = []
         self.timeBreakpointTransitions["/parallel/state_B/state_B2"] = []
         self.genBreakpointTransitions["/parallel/state_B/state_B2"] = []
@@ -212,6 +215,7 @@ class MainApp(RuntimeClassBase):
         
         # transition /state_C
         self.eventTransitions["/state_C"] = []
+        self.timedTransitions["/state_C"] = []
         self.createdTransitions["/state_C"] = []
         self.timeBreakpointTransitions["/state_C"] = []
         self.genBreakpointTransitions["/state_C"] = []
@@ -222,18 +226,21 @@ class MainApp(RuntimeClassBase):
         
         # transition /parallel
         self.eventTransitions["/parallel"] = []
+        self.timedTransitions["/parallel"] = []
         self.createdTransitions["/parallel"] = []
         self.timeBreakpointTransitions["/parallel"] = []
         self.genBreakpointTransitions["/parallel"] = []
         
         # transition /parallel/state_A
         self.eventTransitions["/parallel/state_A"] = []
+        self.timedTransitions["/parallel/state_A"] = []
         self.createdTransitions["/parallel/state_A"] = []
         self.timeBreakpointTransitions["/parallel/state_A"] = []
         self.genBreakpointTransitions["/parallel/state_A"] = []
         
         # transition /parallel/state_B
         self.eventTransitions["/parallel/state_B"] = []
+        self.timedTransitions["/parallel/state_B"] = []
         self.createdTransitions["/parallel/state_B"] = []
         self.timeBreakpointTransitions["/parallel/state_B"] = []
         self.genBreakpointTransitions["/parallel/state_B"] = []
@@ -264,10 +271,10 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions["/parallel/state_A"] = _parallel_state_A_to_state_Debug
         
         # parallel_state_A from /state_Debug
-        # _state_Debug_to_parallel_state_A = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A"]])
-        # _state_Debug_to_parallel_state_A.setTrigger(continueEvent)
-        # _state_Debug_to_parallel_state_A.setGuard(self.continueGuard_parallel_state_A)
-        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A)
+        _state_Debug_to_parallel_state_A = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A"]])
+        _state_Debug_to_parallel_state_A.setTrigger(continueEvent)
+        _state_Debug_to_parallel_state_A.setGuard(self.continueGuard_parallel_state_A)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A)
         
         # _parallel_state_A to /state_Final
         _parallel_state_A_to_state_Final = Transition(self, self.states["/parallel/state_A"], [self.states["/state_Final"]])
@@ -282,10 +289,10 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions["/parallel/state_A/state_A1"] = _parallel_state_A_state_A1_to_state_Debug
         
         # parallel_state_A_state_A1 from /state_Debug
-        # _state_Debug_to_parallel_state_A_state_A1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"]])
-        # _state_Debug_to_parallel_state_A_state_A1.setTrigger(continueEvent)
-        # _state_Debug_to_parallel_state_A_state_A1.setGuard(self.continueGuard_parallel_state_A_state_A1)
-        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A1)
+        _state_Debug_to_parallel_state_A_state_A1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"]])
+        _state_Debug_to_parallel_state_A_state_A1.setTrigger(continueEvent)
+        _state_Debug_to_parallel_state_A_state_A1.setGuard(self.continueGuard_parallel_state_A_state_A1)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A1)
         
         # _parallel_state_A_state_A1 to /state_Final
         _parallel_state_A_state_A1_to_state_Final = Transition(self, self.states["/parallel/state_A/state_A1"], [self.states["/state_Final"]])
@@ -300,10 +307,10 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions["/parallel/state_A/state_A2"] = _parallel_state_A_state_A2_to_state_Debug
         
         # parallel_state_A_state_A2 from /state_Debug
-        # _state_Debug_to_parallel_state_A_state_A2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"]])
-        # _state_Debug_to_parallel_state_A_state_A2.setTrigger(continueEvent)
-        # _state_Debug_to_parallel_state_A_state_A2.setGuard(self.continueGuard_parallel_state_A_state_A2)
-        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A2)
+        _state_Debug_to_parallel_state_A_state_A2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"]])
+        _state_Debug_to_parallel_state_A_state_A2.setTrigger(continueEvent)
+        _state_Debug_to_parallel_state_A_state_A2.setGuard(self.continueGuard_parallel_state_A_state_A2)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_A_state_A2)
         
         # _parallel_state_A_state_A2 to /state_Final
         _parallel_state_A_state_A2_to_state_Final = Transition(self, self.states["/parallel/state_A/state_A2"], [self.states["/state_Final"]])
@@ -318,10 +325,10 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions["/parallel/state_B"] = _parallel_state_B_to_state_Debug
         
         # parallel_state_B from /state_Debug
-        # _state_Debug_to_parallel_state_B = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B"]])
-        # _state_Debug_to_parallel_state_B.setTrigger(continueEvent)
-        # _state_Debug_to_parallel_state_B.setGuard(self.continueGuard_parallel_state_B)
-        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B)
+        _state_Debug_to_parallel_state_B = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B"]])
+        _state_Debug_to_parallel_state_B.setTrigger(continueEvent)
+        _state_Debug_to_parallel_state_B.setGuard(self.continueGuard_parallel_state_B)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B)
         
         # _parallel_state_B to /state_Final
         _parallel_state_B_to_state_Final = Transition(self, self.states["/parallel/state_B"], [self.states["/state_Final"]])
@@ -336,10 +343,10 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions["/parallel/state_B/state_B1"] = _parallel_state_B_state_B1_to_state_Debug
         
         # parallel_state_B_state_B1 from /state_Debug
-        # _state_Debug_to_parallel_state_B_state_B1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"]])
-        # _state_Debug_to_parallel_state_B_state_B1.setTrigger(continueEvent)
-        # _state_Debug_to_parallel_state_B_state_B1.setGuard(self.continueGuard_parallel_state_B_state_B1)
-        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B1)
+        _state_Debug_to_parallel_state_B_state_B1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"]])
+        _state_Debug_to_parallel_state_B_state_B1.setTrigger(continueEvent)
+        _state_Debug_to_parallel_state_B_state_B1.setGuard(self.continueGuard_parallel_state_B_state_B1)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B1)
         
         # _parallel_state_B_state_B1 to /state_Final
         _parallel_state_B_state_B1_to_state_Final = Transition(self, self.states["/parallel/state_B/state_B1"], [self.states["/state_Final"]])
@@ -354,10 +361,10 @@ class MainApp(RuntimeClassBase):
         self.pauseTransitions["/parallel/state_B/state_B2"] = _parallel_state_B_state_B2_to_state_Debug
         
         # parallel_state_B_state_B2 from /state_Debug
-        # _state_Debug_to_parallel_state_B_state_B2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B2"]])
-        # _state_Debug_to_parallel_state_B_state_B2.setTrigger(continueEvent)
-        # _state_Debug_to_parallel_state_B_state_B2.setGuard(self.continueGuard_parallel_state_B_state_B2)
-        # self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B2)
+        _state_Debug_to_parallel_state_B_state_B2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_parallel_state_B_state_B2.setTrigger(continueEvent)
+        _state_Debug_to_parallel_state_B_state_B2.setGuard(self.continueGuard_parallel_state_B_state_B2)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_parallel_state_B_state_B2)
         
         # _parallel_state_B_state_B2 to /state_Final
         _parallel_state_B_state_B2_to_state_Final = Transition(self, self.states["/parallel/state_B/state_B2"], [self.states["/state_Final"]])
@@ -383,6 +390,348 @@ class MainApp(RuntimeClassBase):
         self.states["/state_C"].addTransition(_state_C_to_state_Final)
         self.stopTransitions["/state_C"] = _state_C_to_state_Final
         
+        # comb0
+        _state_Debug_to_comb0 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"]])
+        _state_Debug_to_comb0.setTrigger(continueEvent)
+        _state_Debug_to_comb0.setGuard(self.continueGuardComb0)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb0)
+        
+        # comb1
+        _state_Debug_to_comb1 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"]])
+        _state_Debug_to_comb1.setTrigger(continueEvent)
+        _state_Debug_to_comb1.setGuard(self.continueGuardComb1)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb1)
+        
+        # comb2
+        _state_Debug_to_comb2 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb2.setTrigger(continueEvent)
+        _state_Debug_to_comb2.setGuard(self.continueGuardComb2)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb2)
+        
+        # comb3
+        _state_Debug_to_comb3 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb3.setTrigger(continueEvent)
+        _state_Debug_to_comb3.setGuard(self.continueGuardComb3)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb3)
+        
+        # comb4
+        _state_Debug_to_comb4 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb4.setTrigger(continueEvent)
+        _state_Debug_to_comb4.setGuard(self.continueGuardComb4)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb4)
+        
+        # comb5
+        _state_Debug_to_comb5 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"]])
+        _state_Debug_to_comb5.setTrigger(continueEvent)
+        _state_Debug_to_comb5.setGuard(self.continueGuardComb5)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb5)
+        
+        # comb6
+        _state_Debug_to_comb6 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb6.setTrigger(continueEvent)
+        _state_Debug_to_comb6.setGuard(self.continueGuardComb6)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb6)
+        
+        # comb7
+        _state_Debug_to_comb7 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb7.setTrigger(continueEvent)
+        _state_Debug_to_comb7.setGuard(self.continueGuardComb7)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb7)
+        
+        # comb8
+        _state_Debug_to_comb8 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb8.setTrigger(continueEvent)
+        _state_Debug_to_comb8.setGuard(self.continueGuardComb8)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb8)
+        
+        # comb9
+        _state_Debug_to_comb9 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb9.setTrigger(continueEvent)
+        _state_Debug_to_comb9.setGuard(self.continueGuardComb9)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb9)
+        
+        # comb10
+        _state_Debug_to_comb10 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb10.setTrigger(continueEvent)
+        _state_Debug_to_comb10.setGuard(self.continueGuardComb10)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb10)
+        
+        # comb11
+        _state_Debug_to_comb11 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb11.setTrigger(continueEvent)
+        _state_Debug_to_comb11.setGuard(self.continueGuardComb11)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb11)
+        
+        # comb12
+        _state_Debug_to_comb12 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb12.setTrigger(continueEvent)
+        _state_Debug_to_comb12.setGuard(self.continueGuardComb12)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb12)
+        
+        # comb13
+        _state_Debug_to_comb13 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb13.setTrigger(continueEvent)
+        _state_Debug_to_comb13.setGuard(self.continueGuardComb13)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb13)
+        
+        # comb14
+        _state_Debug_to_comb14 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb14.setTrigger(continueEvent)
+        _state_Debug_to_comb14.setGuard(self.continueGuardComb14)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb14)
+        
+        # comb15
+        _state_Debug_to_comb15 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"]])
+        _state_Debug_to_comb15.setTrigger(continueEvent)
+        _state_Debug_to_comb15.setGuard(self.continueGuardComb15)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb15)
+        
+        # comb16
+        _state_Debug_to_comb16 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb16.setTrigger(continueEvent)
+        _state_Debug_to_comb16.setGuard(self.continueGuardComb16)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb16)
+        
+        # comb17
+        _state_Debug_to_comb17 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb17.setTrigger(continueEvent)
+        _state_Debug_to_comb17.setGuard(self.continueGuardComb17)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb17)
+        
+        # comb18
+        _state_Debug_to_comb18 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb18.setTrigger(continueEvent)
+        _state_Debug_to_comb18.setGuard(self.continueGuardComb18)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb18)
+        
+        # comb19
+        _state_Debug_to_comb19 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb19.setTrigger(continueEvent)
+        _state_Debug_to_comb19.setGuard(self.continueGuardComb19)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb19)
+        
+        # comb20
+        _state_Debug_to_comb20 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb20.setTrigger(continueEvent)
+        _state_Debug_to_comb20.setGuard(self.continueGuardComb20)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb20)
+        
+        # comb21
+        _state_Debug_to_comb21 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb21.setTrigger(continueEvent)
+        _state_Debug_to_comb21.setGuard(self.continueGuardComb21)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb21)
+        
+        # comb22
+        _state_Debug_to_comb22 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb22.setTrigger(continueEvent)
+        _state_Debug_to_comb22.setGuard(self.continueGuardComb22)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb22)
+        
+        # comb23
+        _state_Debug_to_comb23 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb23.setTrigger(continueEvent)
+        _state_Debug_to_comb23.setGuard(self.continueGuardComb23)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb23)
+        
+        # comb24
+        _state_Debug_to_comb24 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb24.setTrigger(continueEvent)
+        _state_Debug_to_comb24.setGuard(self.continueGuardComb24)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb24)
+        
+        # comb25
+        _state_Debug_to_comb25 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb25.setTrigger(continueEvent)
+        _state_Debug_to_comb25.setGuard(self.continueGuardComb25)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb25)
+        
+        # comb26
+        _state_Debug_to_comb26 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb26.setTrigger(continueEvent)
+        _state_Debug_to_comb26.setGuard(self.continueGuardComb26)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb26)
+        
+        # comb27
+        _state_Debug_to_comb27 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb27.setTrigger(continueEvent)
+        _state_Debug_to_comb27.setGuard(self.continueGuardComb27)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb27)
+        
+        # comb28
+        _state_Debug_to_comb28 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb28.setTrigger(continueEvent)
+        _state_Debug_to_comb28.setGuard(self.continueGuardComb28)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb28)
+        
+        # comb29
+        _state_Debug_to_comb29 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb29.setTrigger(continueEvent)
+        _state_Debug_to_comb29.setGuard(self.continueGuardComb29)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb29)
+        
+        # comb30
+        _state_Debug_to_comb30 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb30.setTrigger(continueEvent)
+        _state_Debug_to_comb30.setGuard(self.continueGuardComb30)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb30)
+        
+        # comb31
+        _state_Debug_to_comb31 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb31.setTrigger(continueEvent)
+        _state_Debug_to_comb31.setGuard(self.continueGuardComb31)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb31)
+        
+        # comb32
+        _state_Debug_to_comb32 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb32.setTrigger(continueEvent)
+        _state_Debug_to_comb32.setGuard(self.continueGuardComb32)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb32)
+        
+        # comb33
+        _state_Debug_to_comb33 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb33.setTrigger(continueEvent)
+        _state_Debug_to_comb33.setGuard(self.continueGuardComb33)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb33)
+        
+        # comb34
+        _state_Debug_to_comb34 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb34.setTrigger(continueEvent)
+        _state_Debug_to_comb34.setGuard(self.continueGuardComb34)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb34)
+        
+        # comb35
+        _state_Debug_to_comb35 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]])
+        _state_Debug_to_comb35.setTrigger(continueEvent)
+        _state_Debug_to_comb35.setGuard(self.continueGuardComb35)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb35)
+        
+        # comb36
+        _state_Debug_to_comb36 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb36.setTrigger(continueEvent)
+        _state_Debug_to_comb36.setGuard(self.continueGuardComb36)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb36)
+        
+        # comb37
+        _state_Debug_to_comb37 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb37.setTrigger(continueEvent)
+        _state_Debug_to_comb37.setGuard(self.continueGuardComb37)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb37)
+        
+        # comb38
+        _state_Debug_to_comb38 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb38.setTrigger(continueEvent)
+        _state_Debug_to_comb38.setGuard(self.continueGuardComb38)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb38)
+        
+        # comb39
+        _state_Debug_to_comb39 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb39.setTrigger(continueEvent)
+        _state_Debug_to_comb39.setGuard(self.continueGuardComb39)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb39)
+        
+        # comb40
+        _state_Debug_to_comb40 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb40.setTrigger(continueEvent)
+        _state_Debug_to_comb40.setGuard(self.continueGuardComb40)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb40)
+        
+        # comb41
+        _state_Debug_to_comb41 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb41.setTrigger(continueEvent)
+        _state_Debug_to_comb41.setGuard(self.continueGuardComb41)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb41)
+        
+        # comb42
+        _state_Debug_to_comb42 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb42.setTrigger(continueEvent)
+        _state_Debug_to_comb42.setGuard(self.continueGuardComb42)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb42)
+        
+        # comb43
+        _state_Debug_to_comb43 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb43.setTrigger(continueEvent)
+        _state_Debug_to_comb43.setGuard(self.continueGuardComb43)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb43)
+        
+        # comb44
+        _state_Debug_to_comb44 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb44.setTrigger(continueEvent)
+        _state_Debug_to_comb44.setGuard(self.continueGuardComb44)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb44)
+        
+        # comb45
+        _state_Debug_to_comb45 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb45.setTrigger(continueEvent)
+        _state_Debug_to_comb45.setGuard(self.continueGuardComb45)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb45)
+        
+        # comb46
+        _state_Debug_to_comb46 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb46.setTrigger(continueEvent)
+        _state_Debug_to_comb46.setGuard(self.continueGuardComb46)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb46)
+        
+        # comb47
+        _state_Debug_to_comb47 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb47.setTrigger(continueEvent)
+        _state_Debug_to_comb47.setGuard(self.continueGuardComb47)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb47)
+        
+        # comb48
+        _state_Debug_to_comb48 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb48.setTrigger(continueEvent)
+        _state_Debug_to_comb48.setGuard(self.continueGuardComb48)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb48)
+        
+        # comb49
+        _state_Debug_to_comb49 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb49.setTrigger(continueEvent)
+        _state_Debug_to_comb49.setGuard(self.continueGuardComb49)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb49)
+        
+        # comb50
+        _state_Debug_to_comb50 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]])
+        _state_Debug_to_comb50.setTrigger(continueEvent)
+        _state_Debug_to_comb50.setGuard(self.continueGuardComb50)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb50)
+        
+        # comb51
+        _state_Debug_to_comb51 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb51.setTrigger(continueEvent)
+        _state_Debug_to_comb51.setGuard(self.continueGuardComb51)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb51)
+        
+        # comb52
+        _state_Debug_to_comb52 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb52.setTrigger(continueEvent)
+        _state_Debug_to_comb52.setGuard(self.continueGuardComb52)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb52)
+        
+        # comb53
+        _state_Debug_to_comb53 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb53.setTrigger(continueEvent)
+        _state_Debug_to_comb53.setGuard(self.continueGuardComb53)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb53)
+        
+        # comb54
+        _state_Debug_to_comb54 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb54.setTrigger(continueEvent)
+        _state_Debug_to_comb54.setGuard(self.continueGuardComb54)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb54)
+        
+        # comb55
+        _state_Debug_to_comb55 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb55.setTrigger(continueEvent)
+        _state_Debug_to_comb55.setGuard(self.continueGuardComb55)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb55)
+        
+        # comb56
+        _state_Debug_to_comb56 = Transition(self, self.states["/state_Debug"], [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]])
+        _state_Debug_to_comb56.setTrigger(continueEvent)
+        _state_Debug_to_comb56.setGuard(self.continueGuardComb56)
+        self.states["/state_Debug"].addTransition(_state_Debug_to_comb56)
+        
     
     def _parallel_enter(self):
         self.current_state = self.states["/parallel"]
@@ -392,14 +741,16 @@ class MainApp(RuntimeClassBase):
         if self.firstTime == True:
             self.localExecutionTime = 0.0
             
+            event = "entry: /parallel"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             
         else:
+            event = "re-entry: /parallel"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _parallel_exit(self):
         index = 2
@@ -423,17 +774,14 @@ class MainApp(RuntimeClassBase):
             self.firstTime = True
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel"])
         allTransitions.extend(self.eventTransitions["/parallel"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel"])
         allTransitions.extend(self.createdTransitions["/parallel"])
         allTransitions.append(self.stopTransitions["/parallel"])
         allTransitions.append(self.pauseTransitions["/parallel"])
-        event = "state_exit: /parallel"
+        event = "exit: /parallel"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -449,14 +797,16 @@ class MainApp(RuntimeClassBase):
         if self.firstTime == True:
             self.localExecutionTime = 0.0
             
+            event = "entry: /parallel/state_A"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel/state_A", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             
         else:
+            event = "re-entry: /parallel/state_A"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel/state_A", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _parallel_state_A_exit(self):
         index = 2
@@ -480,17 +830,14 @@ class MainApp(RuntimeClassBase):
             self.firstTime = True
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel/state_A":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel/state_A"])
         allTransitions.extend(self.eventTransitions["/parallel/state_A"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel/state_A"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel/state_A"])
         allTransitions.extend(self.createdTransitions["/parallel/state_A"])
         allTransitions.append(self.stopTransitions["/parallel/state_A"])
         allTransitions.append(self.pauseTransitions["/parallel/state_A"])
-        event = "state_exit: /parallel/state_A"
+        event = "exit: /parallel/state_A"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -506,14 +853,16 @@ class MainApp(RuntimeClassBase):
         if self.firstTime == True:
             self.localExecutionTime = 0.0
             
+            event = "entry: /parallel/state_B"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel/state_B", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             
         else:
+            event = "re-entry: /parallel/state_B"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel/state_B", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
     
     def _parallel_state_B_exit(self):
         index = 2
@@ -537,17 +886,14 @@ class MainApp(RuntimeClassBase):
             self.firstTime = True
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel/state_B":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel/state_B"])
         allTransitions.extend(self.eventTransitions["/parallel/state_B"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel/state_B"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel/state_B"])
         allTransitions.extend(self.createdTransitions["/parallel/state_B"])
         allTransitions.append(self.stopTransitions["/parallel/state_B"])
         allTransitions.append(self.pauseTransitions["/parallel/state_B"])
-        event = "state_exit: /parallel/state_B"
+        event = "exit: /parallel/state_B"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -568,24 +914,30 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/parallel/state_A/state_A1")
+            event = "entry: /parallel/state_A/state_A1"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel/state_A/state_A1", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             
             timers = []
             if self.scaleFactor != float("inf"):
                 self.addTimer(0, 5 / self.scaleFactor)
                 timers.append(5)
+                print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
+                self.process_time_transitions(timers, "/parallel/state_A/state_A1")
             else:
                 self.addTimer(0, 5.0 / self.scaleFactor)
-            self.process_time_transitions(timers, "/parallel/state_A/state_A1")
             self.process_event_transitions("/parallel/state_A/state_A1")
             
+            print(colors.fg.lightgrey +"[/parallel/state_A/state_A1] > "+colors.reset),
         else:
             self.addTimer(0, 5.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
+            event = "re-entry: /parallel/state_A/state_A1"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel/state_A/state_A1", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/parallel/state_A/state_A1] > "+colors.reset),
     
     def _parallel_state_A_state_A1_exit(self):
         self.removeTimer(0)
@@ -616,17 +968,14 @@ class MainApp(RuntimeClassBase):
             self.active_states.get()
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel/state_A/state_A1":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel/state_A/state_A1"])
         allTransitions.extend(self.eventTransitions["/parallel/state_A/state_A1"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel/state_A/state_A1"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel/state_A/state_A1"])
         allTransitions.extend(self.createdTransitions["/parallel/state_A/state_A1"])
         allTransitions.append(self.stopTransitions["/parallel/state_A/state_A1"])
         allTransitions.append(self.pauseTransitions["/parallel/state_A/state_A1"])
-        event = "state_exit: /parallel/state_A/state_A1"
+        event = "exit: /parallel/state_A/state_A1"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -638,7 +987,6 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/parallel/state_A/state_A2"]
         self.startTime = self.getSimulatedTime()
         
-        print("A2")
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
         
@@ -648,15 +996,21 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/parallel/state_A/state_A2")
+            event = "entry: /parallel/state_A/state_A2"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel/state_A/state_A2", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
             self.process_event_transitions("/parallel/state_A/state_A2")
             
+            print(colors.fg.lightgrey +"[/parallel/state_A/state_A2] > "+colors.reset),
         else:
+            event = "re-entry: /parallel/state_A/state_A2"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel/state_A/state_A2", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/parallel/state_A/state_A2] > "+colors.reset),
     
     def _parallel_state_A_state_A2_exit(self):
         index = 2
@@ -686,17 +1040,14 @@ class MainApp(RuntimeClassBase):
             self.active_states.get()
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel/state_A/state_A2":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel/state_A/state_A2"])
         allTransitions.extend(self.eventTransitions["/parallel/state_A/state_A2"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel/state_A/state_A2"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel/state_A/state_A2"])
         allTransitions.extend(self.createdTransitions["/parallel/state_A/state_A2"])
         allTransitions.append(self.stopTransitions["/parallel/state_A/state_A2"])
         allTransitions.append(self.pauseTransitions["/parallel/state_A/state_A2"])
-        event = "state_exit: /parallel/state_A/state_A2"
+        event = "exit: /parallel/state_A/state_A2"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -717,24 +1068,30 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/parallel/state_B/state_B1")
+            event = "entry: /parallel/state_B/state_B1"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel/state_B/state_B1", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
             
             timers = []
             if self.scaleFactor != float("inf"):
                 self.addTimer(1, 5 / self.scaleFactor)
                 timers.append(5)
+                print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
+                self.process_time_transitions(timers, "/parallel/state_B/state_B1")
             else:
                 self.addTimer(1, 5.0 / self.scaleFactor)
-            self.process_time_transitions(timers, "/parallel/state_B/state_B1")
             self.process_event_transitions("/parallel/state_B/state_B1")
             
+            print(colors.fg.lightgrey +"[/parallel/state_B/state_B1] > "+colors.reset),
         else:
             self.addTimer(1, 5.0 - ((self.localExecutionTime / 1000.0) / self.scaleFactor))
+            event = "re-entry: /parallel/state_B/state_B1"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel/state_B/state_B1", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/parallel/state_B/state_B1] > "+colors.reset),
     
     def _parallel_state_B_state_B1_exit(self):
         self.removeTimer(1)
@@ -765,17 +1122,14 @@ class MainApp(RuntimeClassBase):
             self.active_states.get()
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel/state_B/state_B1":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel/state_B/state_B1"])
         allTransitions.extend(self.eventTransitions["/parallel/state_B/state_B1"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel/state_B/state_B1"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel/state_B/state_B1"])
         allTransitions.extend(self.createdTransitions["/parallel/state_B/state_B1"])
         allTransitions.append(self.stopTransitions["/parallel/state_B/state_B1"])
         allTransitions.append(self.pauseTransitions["/parallel/state_B/state_B1"])
-        event = "state_exit: /parallel/state_B/state_B1"
+        event = "exit: /parallel/state_B/state_B1"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -796,15 +1150,21 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/parallel/state_B/state_B2")
+            event = "entry: /parallel/state_B/state_B2"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /parallel/state_B/state_B2", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
             self.process_event_transitions("/parallel/state_B/state_B2")
             
+            print(colors.fg.lightgrey +"[/parallel/state_B/state_B2] > "+colors.reset),
         else:
+            event = "re-entry: /parallel/state_B/state_B2"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /parallel/state_B/state_B2", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/parallel/state_B/state_B2] > "+colors.reset),
     
     def _parallel_state_B_state_B2_exit(self):
         index = 2
@@ -834,17 +1194,14 @@ class MainApp(RuntimeClassBase):
             self.active_states.get()
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/parallel/state_B/state_B2":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/parallel/state_B/state_B2"])
         allTransitions.extend(self.eventTransitions["/parallel/state_B/state_B2"])
         allTransitions.extend(self.timeBreakpointTransitions["/parallel/state_B/state_B2"])
         allTransitions.extend(self.genBreakpointTransitions["/parallel/state_B/state_B2"])
         allTransitions.extend(self.createdTransitions["/parallel/state_B/state_B2"])
         allTransitions.append(self.stopTransitions["/parallel/state_B/state_B2"])
         allTransitions.append(self.pauseTransitions["/parallel/state_B/state_B2"])
-        event = "state_exit: /parallel/state_B/state_B2"
+        event = "exit: /parallel/state_B/state_B2"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -865,15 +1222,21 @@ class MainApp(RuntimeClassBase):
             
             self.increment_counter();
             
+            self.print_internal_state("/state_C")
+            event = "entry: /state_C"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_enter: /state_C", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print((colors.fg.lightgreen + "Available Transition Options:") + colors.reset)
             self.process_event_transitions("/state_C")
             
+            print(colors.fg.lightgrey +"[/state_C] > "+colors.reset),
         else:
+            event = "re-entry: /state_C"
             allAttTuples = []
             allAttTuples.append(["counter", self.counter])
-            self.saveEvent("state_re-enter: /state_C", self.getSimulatedTime(), allAttTuples)
+            self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
+            print(colors.fg.lightgrey +"[/state_C] > "+colors.reset),
     
     def _state_C_exit(self):
         index = 2
@@ -903,17 +1266,14 @@ class MainApp(RuntimeClassBase):
             self.active_states.get()
         
         allTransitions = []
-        for t in self.timedTransitions:
-            source = t.source.name
-            if source == "/state_C":
-                allTransitions.append(t)
+        allTransitions.extend(self.timedTransitions["/state_C"])
         allTransitions.extend(self.eventTransitions["/state_C"])
         allTransitions.extend(self.timeBreakpointTransitions["/state_C"])
         allTransitions.extend(self.genBreakpointTransitions["/state_C"])
         allTransitions.extend(self.createdTransitions["/state_C"])
         allTransitions.append(self.stopTransitions["/state_C"])
         allTransitions.append(self.pauseTransitions["/state_C"])
-        event = "state_exit: /state_C"
+        event = "exit: /state_C"
         for tr in allTransitions:
             if not (tr.enabled_event == None):
                 event = (event + (" - " + tr.enabled_event.name))
@@ -925,26 +1285,15 @@ class MainApp(RuntimeClassBase):
         if self.firstTime:
             self.firstTime = False
         targets = list(self.active_states.queue)
-        source = self.states["/state_Debug"]
-        # newTransition = Transition(self, source, targets)
-        # newTransition.setTrigger(Event("continue", self.getInPortName("input")))
-        # newTransition.setGuard(self.continueGuard)
-        # source.addTransition(newTransition)
         states_names = [s.name for s in targets]
         
+        print(colors.fg.lightred),
         print("DEBUG MODE")
-        print("Current State: {}".format(states_names))
-        print("counter: ", self.counter)
+        print("Current States: {}".format(states_names))
+        print("counter" + ": {}".format(self.counter))
+        print(colors.reset),
+        print(colors.fg.lightgrey +"[/state_Debug] > "+colors.reset),
     
-    def continueGuard(self, parameters):
-        targets = list(self.active_states.queue)
-        flag = False
-        for i in targets:
-            if i.name == self.current_state.name:
-                flag = True
-                #print(i)
-        return flag
-
     def _state_Debug_exit(self):
         self.cumulativeDebugTime = (self.getSimulatedTime() - self.executionTime)
         targets = list(self.active_states.queue)
@@ -961,14 +1310,11 @@ class MainApp(RuntimeClassBase):
         iteration = 0
         chosen = None
         lowest = timers[0]
-        for t in self.timedTransitions:
-            port = t.trigger.port
-            source = t.source.name
-            if (source == self.current_state.name) and (port != "input"):
-                if lowest >= timers[iteration]:
-                    lowest = timers[iteration]
-                    chosen = t
-                iteration = iteration + 1
+        for t in self.timedTransitions[state_name]:
+            if lowest >= timers[iteration]:
+                lowest = timers[iteration]
+                chosen = t
+            iteration = iteration + 1
         if iteration > 0:
             temp = Transition(self, chosen.source, chosen.targets)
             temp.setTrigger(Event("step", self.getInPortName("input")))
@@ -976,7 +1322,7 @@ class MainApp(RuntimeClassBase):
                 self.createdTransitions[state_name].append(temp)
                 chosen.source.addTransition(temp)
             attrs = [s.name for s in chosen.targets]
-            print("[time-based] type step to move to {} ".format(attrs))
+            print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.fg.lightgrey +" seconds" + colors.reset).format(attrs, lowest))
     
     def process_event_transitions(self, state_name):
         possibleT = self.eventTransitions[state_name]
@@ -984,14 +1330,18 @@ class MainApp(RuntimeClassBase):
         i = 0
         for t in possibleT:
             temp = Transition(self, source, t.targets)
-            name = "step" + str(i)
+            name = ("step" + str(i))
             temp.setTrigger(Event(name, self.getInPortName("input")))
             if not self.listContains(self.createdTransitions[state_name], temp):
                 self.createdTransitions[state_name].append(temp)
                 source.addTransition(temp)
             attrs = [s.name for s in t.targets]
-            print("[event-based] type {} to move to {} ".format(name, attrs))
+            print((colors.fg.lightgreen + "[event-based]"  + colors.fg.lightgrey +" type " + colors.fg.pink +"{}"+ colors.fg.lightgrey + " to move to "+ colors.fg.cyan + "{}" + colors.fg.lightgrey +" and simulate event "+ colors.fg.pink + "{}"+ colors.reset).format(name, attrs, t.trigger.name))
             i = (i + 1)
+    
+    def print_internal_state(self, state_name):
+        print("\n" + (colors.fg.cyan + state_name))
+        print(colors.fg.cyan + "counter" + (": {}" + colors.reset).format(self.counter))
     
     def saveExecutionTrace(self, outputName):
         currDir = os.getcwd()
@@ -1018,8 +1368,8 @@ class MainApp(RuntimeClassBase):
             for v in event.getAttributeValues():
                 attributeValues += v[0] + ": " + str(v[1]) + "; "
             eventInfo = str(ide) + ". Timestamp: " + str(timestamp) +  "; Name: " + eventName + ";  Attributes: ["  + attributeValues + "]"
-            print(ide)
-            print(eventName)
+            # print(ide)
+            # print(eventName)
             f.write(eventInfo)
         f.close() 
     
@@ -1034,36 +1384,206 @@ class MainApp(RuntimeClassBase):
         return flag
     
     def continueGuard_parallel(self, parameters):
-        active_states = list(self.active_states.queue)
-        flag = False
-        for a_s in active_states:
-            if isinstance(a_s.parent.parent, ParallelState):
-                flag = True
-        return flag
+        return list(self.active_states.queue) == self.states["/parallel"]
     
-    # def continueGuard_parallel_state_A(self, parameters):
-    #     return self.current_state == self.states["/parallel/state_A"]
+    def continueGuard_parallel_state_A(self, parameters):
+        return list(self.active_states.queue) == self.states["/parallel/state_A"]
     
-    # def continueGuard_parallel_state_A_state_A1(self, parameters):
-    #     return self.current_state == self.states["/parallel/state_A/state_A1"]
+    def continueGuard_parallel_state_A_state_A1(self, parameters):
+        return list(self.active_states.queue) == self.states["/parallel/state_A/state_A1"]
     
-    # def continueGuard_parallel_state_A_state_A2(self, parameters):
-    #     return self.current_state == self.states["/parallel/state_A/state_A2"]
+    def continueGuard_parallel_state_A_state_A2(self, parameters):
+        return list(self.active_states.queue) == self.states["/parallel/state_A/state_A2"]
     
-    # def continueGuard_parallel_state_B(self, parameters):
-    #     return self.current_state == self.states["/parallel/state_B"]
+    def continueGuard_parallel_state_B(self, parameters):
+        return list(self.active_states.queue) == self.states["/parallel/state_B"]
     
-    # def continueGuard_parallel_state_B_state_B1(self, parameters):
-    #     return self.current_state == self.states["/parallel/state_B/state_B1"]
+    def continueGuard_parallel_state_B_state_B1(self, parameters):
+        return list(self.active_states.queue) == self.states["/parallel/state_B/state_B1"]
     
-    # def continueGuard_parallel_state_B_state_B2(self, parameters):
-    #     return self.current_state == self.states["/parallel/state_B/state_B2"]
+    def continueGuard_parallel_state_B_state_B2(self, parameters):
+        return list(self.active_states.queue) == self.states["/parallel/state_B/state_B2"]
     
     def continueGuard_state_C(self, parameters):
-        return self.current_state == self.states["/state_C"]
+        return list(self.active_states.queue) == self.states["/state_C"]
+    
+    def continueGuardComb0(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"]]
+    
+    def continueGuardComb1(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"]]
+    
+    def continueGuardComb2(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb3(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb4(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb5(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"]]
+    
+    def continueGuardComb6(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb7(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb8(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb9(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb10(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb11(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb12(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb13(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb14(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb15(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"]]
+    
+    def continueGuardComb16(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb17(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb18(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb19(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb20(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb21(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb22(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb23(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb24(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb25(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb26(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb27(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb28(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb29(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb30(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb31(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb32(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb33(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb34(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb35(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"]]
+    
+    def continueGuardComb36(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb37(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb38(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb39(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb40(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb41(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb42(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb43(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb44(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb45(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb46(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb47(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb48(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb49(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb50(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"]]
+    
+    def continueGuardComb51(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb52(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb53(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb54(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb55(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
+    
+    def continueGuardComb56(self, parameters):
+        return list(self.active_states.queue) == [self.states["/parallel/state_A/state_A1"], self.states["/parallel/state_A/state_A2"], self.states["/parallel/state_B/state_B1"], self.states["/parallel/state_B/state_B2"], self.states["/parallel/state_A"], self.states["/parallel/state_B"]]
     
     def initializeStatechart(self):
         # enter default state
+        event = "start"
+        allAttTuples = []
+        allAttTuples.append(["counter", self.counter])
+        self.saveEvent(event, self.getSimulatedTime(), allAttTuples)
         self.default_targets = self.states["/parallel"].getEffectiveTargetStates()
         RuntimeClassBase.initializeStatechart(self)
 

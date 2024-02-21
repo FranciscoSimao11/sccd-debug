@@ -808,7 +808,9 @@ class State:
         self.transitions = []
         self.history = []
         self.has_eventless_transitions = False
-        
+        result = self.name.split("/")
+        self.friendly_name = result[len(result) - 1]
+
     def getEffectiveTargetStates(self):
         targets = [self]
         if self.default_state:
@@ -834,9 +836,10 @@ class State:
     
     def addTransition(self, transition):
         self.transitions.append(transition)
+        #self.transitions.insert(0, transition)
 
     def resetTransitions(self):
-        self.transitions.clear()
+        self.transitions = []
         
     def setEnter(self, enter):
         self.enter = enter
@@ -897,7 +900,7 @@ class Transition:
         self.obj = obj
         self.enabled_event = None # the event that enabled this transition
         self.optimize()
-    
+
     def isEnabled(self, events, enabled_transitions):
         if self.trigger is None:
             self.enabled_event = None
@@ -911,7 +914,7 @@ class Transition:
     # @profile
     def fire(self):
         # exit states...
-        #print("Press Enter to perform a step")
+        #print(self)
         #raw_input()
         #print("firing")
         exit_set = self.__exitSet()
@@ -1132,6 +1135,7 @@ class RuntimeClassBase(object):
                 heappush(self.controller.object_manager.instance_times, (self.earliest_event_time, self))
 
     def step(self):
+        
         #raw_input("Press Enter to step\n")
         is_stable = False
         #print(self.events)
@@ -1141,6 +1145,7 @@ class RuntimeClassBase(object):
             due = []
             if self.events.getEarliestTime() <= self.controller.simulated_time:
                 due = [self.events.pop()]
+                
                 # print(due)
                 # if(re.match(pattern, due[0].name) != None):
                 #     incomingBreakpoint = True
@@ -1155,6 +1160,7 @@ class RuntimeClassBase(object):
             self.timers[index] = self.events.add(*entry)
         self.timers_to_add = {}
         self.__set_stable(True)
+        #print("> "),
 
     def inState(self, state_strings):
         state_ids = [self.states[state_string].state_id for state_string in state_strings]
@@ -1168,6 +1174,7 @@ class RuntimeClassBase(object):
 
     def bigStep(self, input_events):
         #print("big-step")
+        #print("> "),
         self.big_step.next(input_events)
         self.small_step.reset()
         self.combo_step.reset()

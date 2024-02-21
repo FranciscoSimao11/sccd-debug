@@ -6,7 +6,7 @@
 
 import traceback
 import time
-
+import itertools
 from sccd.compiler.utils import Enum, Logger
 from sccd.compiler.visitor import Visitor
 from sccd.compiler.sccd_constructs import FormalParameter
@@ -786,11 +786,33 @@ class GenericGenerator(Visitor):
                                 ["%s_%i" % (s.friendly_name, i)]
                             ))
                 
+
+        toCombine = []
+        for s in statechart.basics + statechart.composites:
+            if s.has_parallel_ancestor:
+                toCombine.append(s)
+
+        # for c in combinations:
+        #     print(c.new_full_name)
+        #print(c.new_full_name for c in combinations)
+        combinations = self.get_combinations(toCombine)
+        # print(len(combinations))
+        # it = 0
+        # for c in combinations:
+        #     for s in c:
+        #         if not s.parent.is_parallel_state and len(s.parent.children) > 1:
+        #             print("s")
+        #             #combinations.remove(it)
+        #     it = it + 1
+
+        # print(len(combinations))
+
+
         if self.debug_mode == 1:
             
             # create DEBUG transitions
             self.createDebugAndFinalTransitions(debugName, finalStateName, statechart)
-            
+            self.createParallelTransitions(debugName, combinations)
             
         self.writer.endMethodBody()
         self.writer.endMethod()
@@ -829,8 +851,15 @@ class GenericGenerator(Visitor):
         if self.debug_mode == 1:
             
             # debug guards
-            self.createDebugGuards(statechart)
+            self.createDebugGuards(statechart, combinations)
         
+    def get_combinations(self, lst): # creating a user-defined method
+        combination = [] # empty list 
+        for r in range(2, len(lst) + 1):
+            # to generate combination
+            combination.extend(itertools.combinations(lst, r))
+        return combination
+
     def visit_FormalEventParameter(self, formal_event_parameter):
         self.writer.add(formal_event_parameter.name)
         
@@ -927,7 +956,8 @@ class GenericGenerator(Visitor):
 
         if self.debug_mode == 1:
             self.writer.add(GLC.VSpace())
-            self.writer.add(GLC.FunctionCall(GLC.SelfProperty("print_internal_state"), [GLC.String(parent_node.new_full_name)]))
+            if parent_node.children == []:
+                self.writer.add(GLC.FunctionCall(GLC.SelfProperty("print_internal_state"), [GLC.String(parent_node.new_full_name)]))
             
             self.writer.addAssignment("event", GLC.String("entry: " + parent_node.new_full_name))
             self.createTracingEvent()
@@ -995,7 +1025,8 @@ class GenericGenerator(Visitor):
             self.handleBreakpoints(parent_node, timerIndex)
 
             #self.writer.addRawCode('print("> "),')
-            self.printPrompt(parent_node.new_full_name)
+            if parent_node.children == []:
+                self.printPrompt(parent_node.new_full_name)
 
             self.writer.endElseIf()
             # self.chooseNextTransition(parent_node, appended)
@@ -1033,7 +1064,8 @@ class GenericGenerator(Visitor):
             self.createTracingEvent()
 
             #self.writer.addRawCode('print("> "),')
-            self.printPrompt(parent_node.new_full_name)
+            if parent_node.children == []:
+                self.printPrompt(parent_node.new_full_name)
 
             self.writer.endElse()
         
@@ -1860,6 +1892,54 @@ class GenericGenerator(Visitor):
                         self.writer.addVSpace()
                         #timerIndex = timerIndex + 1
 
+    def createParallelTransitions(self, debugName, combinations):
+        iteration = 0
+        for c in combinations:
+            targets=[]
+            for s in c:
+                targets.append(GLC.MapIndexedExpression(GLC.SelfProperty("states"),GLC.String(s.new_full_name),))
+            fromTransName = "_%s_to_comb%s" % (debugName[1:], iteration)
+            self.writer.addComment("comb" + str(iteration))
+            self.writer.addAssignment(
+                    GLC.LocalVariableDeclaration(fromTransName),
+                    GLC.NewExpression(
+                        "Transition",
+                        [
+                            GLC.SelfExpression(),
+                            GLC.MapIndexedExpression(
+                                    GLC.SelfProperty("states"),
+                                    GLC.String(debugName)
+                                    ),
+                            GLC.ArrayExpression(
+                                targets
+                            )
+                        ]
+                    )
+                )
+            self.writer.add(
+                GLC.FunctionCall(
+                    GLC.Property(fromTransName, "setTrigger"),["continueEvent"])
+                            )
+            
+            self.writer.add(
+                GLC.FunctionCall(
+                    GLC.Property(fromTransName, "setGuard"), [GLC.SelfProperty("continueGuardComb%s" % iteration)]
+                )
+            )
+            self.writer.add(
+                GLC.FunctionCall(
+                    GLC.Property(
+                        GLC.MapIndexedExpression(
+                                GLC.SelfProperty("states"),
+                                GLC.String(debugName),
+                            ),
+                    "addTransition"), 
+                    [fromTransName]
+                )
+            )
+            self.writer.addVSpace()
+            iteration = iteration + 1
+
     def createDebugActions(self, debugName):
         #create enter debug state
         self.writer.beginMethod("_" + debugName[1:] + "_enter")
@@ -1888,34 +1968,34 @@ class GenericGenerator(Visitor):
 
 
         prop = GLC.Property(GLC.SelfProperty("active_states"), "queue")
-        transitionName = "newTransition"
-        objectType = "Transition"
-        eventName = "continue"
+        # transitionName = "newTransition"
+        # objectType = "Transition"
+        # eventName = "continue"
         self.writer.addAssignment("targets", GLC.FunctionCall("list", [prop]))
-        self.writer.addAssignment("source", GLC.ArrayIndexedExpression(GLC.SelfProperty("states"), GLC.String(debugName)))
+        #self.writer.addAssignment("source", GLC.ArrayIndexedExpression(GLC.SelfProperty("states"), GLC.String(debugName)))
         #self.writer.beginForLoopIterateArray("targets", "s")
-        self.writer.addAssignment(transitionName, 
-                                  GLC.NewExpression(
-                                      objectType, 
-                                      [GLC.SelfExpression(),
-                                       "source",
-                                       "targets"])) #GLC.ArrayIndexedExpression("", "s")
+        # self.writer.addAssignment(transitionName, 
+        #                           GLC.NewExpression(
+        #                               objectType, 
+        #                               [GLC.SelfExpression(),
+        #                                "source",
+        #                                "targets"])) #GLC.ArrayIndexedExpression("", "s")
         
-        self.writer.add(
-            GLC.FunctionCall(
-                GLC.Property(transitionName,"setTrigger"),
-                [GLC.NewExpression(
-                    "Event", [GLC.String(eventName),
-                              GLC.FunctionCall(
-                                  GLC.SelfProperty("getInPortName"), [GLC.String("input")])]) ]
-            )
-        )
+        # self.writer.add(
+        #     GLC.FunctionCall(
+        #         GLC.Property(transitionName,"setTrigger"),
+        #         [GLC.NewExpression(
+        #             "Event", [GLC.String(eventName),
+        #                       GLC.FunctionCall(
+        #                           GLC.SelfProperty("getInPortName"), [GLC.String("input")])]) ]
+        #     )
+        # )
             
-        self.writer.add(
-            GLC.FunctionCall(
-                GLC.Property("source", "addTransition"), 
-                [transitionName]
-        ))
+        # self.writer.add(
+        #     GLC.FunctionCall(
+        #         GLC.Property("source", "addTransition"), 
+        #         [transitionName]
+        # ))
 
         self.writer.add(GLC.RawCode("states_names = [s.name for s in targets]"))
 
@@ -1926,7 +2006,7 @@ class GenericGenerator(Visitor):
         self.writer.addRawCode('print(colors.fg.lightred),')
         self.writer.add(GLC.FunctionCall("print",[GLC.String("DEBUG MODE")]))
         #self.writer.add(GLC.FunctionCall("print", [GLC.String("Current State: "), GLC.Property(GLC.SelfProperty("current_state"), "name")]))
-        self.writer.add(GLC.RawCode('print("Current State: {}".format(states_names))'))
+        self.writer.add(GLC.RawCode('print("Current States: {}".format(states_names))'))
         for atr in self.attributes:
             self.writer.add(
                 GLC.FunctionCall("print", [
@@ -2049,7 +2129,7 @@ class GenericGenerator(Visitor):
         self.writer.endMethodBody()
         self.writer.endMethod()
 
-    def createDebugGuards(self, statechart):
+    def createDebugGuards(self, statechart, combinations):
         for s in statechart.states:
             if not s.is_root:
                 self.writer.beginMethod("continueGuard%s" % s.friendly_name)
@@ -2058,7 +2138,8 @@ class GenericGenerator(Visitor):
                 self.writer.add(
                     GLC.ReturnStatement(
                         GLC.EqualsExpression(
-                            GLC.SelfProperty("current_state"), 
+                            #GLC.SelfProperty("current_state"), 
+                            GLC.FunctionCall("list", [GLC.Property(GLC.SelfProperty("active_states"), "queue")]),
                                         GLC.MapIndexedExpression(
                                         GLC.SelfProperty("states"),
                                         GLC.String(s.new_full_name),
@@ -2069,7 +2150,29 @@ class GenericGenerator(Visitor):
                 
                 self.writer.endMethodBody()
                 self.writer.endMethod()
+
+        iteration = 0
+        for c in combinations:
+            targets=[]
+            for s in c:
+                targets.append(GLC.MapIndexedExpression(GLC.SelfProperty("states"),GLC.String(s.new_full_name),))
                 
+            self.writer.beginMethod("continueGuardComb%s" % iteration)
+            self.writer.addFormalParameter("parameters")
+            self.writer.beginMethodBody()
+            self.writer.add(
+                GLC.ReturnStatement(
+                    GLC.EqualsExpression(
+                                GLC.FunctionCall("list", [GLC.Property(GLC.SelfProperty("active_states"), "queue")]), 
+                                GLC.ArrayExpression(targets)
+                                )
+                )
+            )
+            
+            self.writer.endMethodBody()
+            self.writer.endMethod()
+            iteration = iteration + 1
+
     def chooseNextTransition(self):
         self.writer.beginMethod("process_time_transitions")
         self.writer.addFormalParameter("timers")
@@ -2151,6 +2254,7 @@ class GenericGenerator(Visitor):
         self.writer.add(GLC.FunctionCall(GLC.Property(mapExp, "append"),["temp"]))
         self.writer.add(GLC.FunctionCall(GLC.Property(GLC.Property("chosen", "source"), "addTransition"),["temp"]))
         self.writer.endIf()
+        #friendly_name
         self.writer.addRawCode("attrs = [s.name for s in chosen.targets]")
         #self.writer.addRawCode('print("[time-based] type step to move to {} ".format(attrs))')
         # GLC.AdditionExpression(
@@ -2160,7 +2264,7 @@ class GenericGenerator(Visitor):
         #                                         GLC.String("Available Transition Options:")), 
         #                                         GLC.Property("colors", "reset"))
 
-        self.writer.addRawCode('print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.reset).format(attrs, lowest))')
+        self.writer.addRawCode('print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.fg.lightgrey +" seconds" + colors.reset).format(attrs, lowest))')
 
         self.writer.endIf()
 
@@ -2202,6 +2306,7 @@ class GenericGenerator(Visitor):
         self.writer.add(GLC.FunctionCall(GLC.Property("source","addTransition"), ["temp"]))
         self.writer.endIf()
 
+        #friendly_name
         self.writer.addRawCode("attrs = [s.name for s in t.targets]")
         #self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
 
@@ -2264,9 +2369,10 @@ class GenericGenerator(Visitor):
         self.writer.addFormalParameter("state_name")
         self.writer.beginMethodBody()
         self.writer.add(GLC.FunctionCall("print", [
+            GLC.AdditionExpression(GLC.String('\\n'),
             GLC.AdditionExpression(
                 GLC.Property(
-                    GLC.Property("colors", "fg"), "cyan") ,"state_name")]))
+                    GLC.Property("colors", "fg"), "cyan") ,"state_name"))]))
         
         #  self.writer.add(GLC.FunctionCall("print", [
         #     GLC.AdditionExpression(
@@ -2299,7 +2405,6 @@ class GenericGenerator(Visitor):
     def printPrompt(self, state):
         #self.writer.addRawCode('print(colors.fg.green+"['+ state +'] > "+colors.reset),')
         self.writer.addRawCode('print(colors.fg.lightgrey +"['+ state +'] > "+colors.reset),')
-
 
     def createTracingEvent(self):
         self.writer.addAssignment("allAttTuples", GLC.ArrayExpression())

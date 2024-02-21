@@ -575,15 +575,11 @@ class MainApp(RuntimeClassBase):
         if self.firstTime:
             self.firstTime = False
         targets = list(self.active_states.queue)
-        source = self.states["/state_Debug"]
-        newTransition = Transition(self, source, targets)
-        newTransition.setTrigger(Event("continue", self.getInPortName("input")))
-        source.addTransition(newTransition)
         states_names = [s.name for s in targets]
         
         print(colors.fg.lightred),
         print("DEBUG MODE")
-        print("Current State: {}".format(states_names))
+        print("Current States: {}".format(states_names))
         print("counter" + ": {}".format(self.counter))
         print(colors.reset),
         print(colors.fg.lightgrey +"[/state_Debug] > "+colors.reset),
@@ -616,7 +612,7 @@ class MainApp(RuntimeClassBase):
                 self.createdTransitions[state_name].append(temp)
                 chosen.source.addTransition(temp)
             attrs = [s.name for s in chosen.targets]
-            print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.reset).format(attrs, lowest))
+            print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" with a duration of " + colors.fg.pink + "{}" + colors.fg.lightgrey +" seconds" + colors.reset).format(attrs, lowest))
     
     def process_event_transitions(self, state_name):
         possibleT = self.eventTransitions[state_name]
@@ -634,7 +630,7 @@ class MainApp(RuntimeClassBase):
             i = (i + 1)
     
     def print_internal_state(self, state_name):
-        print(colors.fg.cyan + state_name)
+        print("\n" + (colors.fg.cyan + state_name))
         print(colors.fg.cyan + "counter" + (": {}" + colors.reset).format(self.counter))
     
     def saveExecutionTrace(self, outputName):
@@ -678,16 +674,16 @@ class MainApp(RuntimeClassBase):
         return flag
     
     def continueGuard_state_A(self, parameters):
-        return self.current_state == self.states["/state_A"]
+        return list(self.active_states.queue) == self.states["/state_A"]
     
     def continueGuard_state_B(self, parameters):
-        return self.current_state == self.states["/state_B"]
+        return list(self.active_states.queue) == self.states["/state_B"]
     
     def continueGuard_state_C(self, parameters):
-        return self.current_state == self.states["/state_C"]
+        return list(self.active_states.queue) == self.states["/state_C"]
     
     def continueGuard_state_D(self, parameters):
-        return self.current_state == self.states["/state_D"]
+        return list(self.active_states.queue) == self.states["/state_D"]
     
     def initializeStatechart(self):
         # enter default state
