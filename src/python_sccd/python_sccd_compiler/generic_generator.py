@@ -4,8 +4,9 @@
 # to a generic language AST (see generic_language_constructs.py), that can
 # then be visited by a target language writer.
 
-import traceback
-import time
+# import traceback
+# import time
+# import os
 import itertools
 from sccd.compiler.utils import Enum, Logger
 from sccd.compiler.visitor import Visitor
@@ -26,6 +27,12 @@ class GenericGenerator(Visitor):
         self.attributes = []
         self.breakpoints = self.setBreakpoints() if debug_mode == 1 else []
         self.numberOfAfterEvents = 0
+        # path = os.path.realpath(__file__) 
+        # print(path)
+        # dir = os.path.dirname(path)     
+        # dir = dir.replace('python_sccd_compiler', 'imports')
+        # os.chdir(dir)
+        # print(dir)
 
     def generic_visit(self, node):
         Logger.showWarning("GenericGenerator has no visit method for node of type '" + str(type(node)) + "'.")
@@ -69,7 +76,7 @@ class GenericGenerator(Visitor):
         #self.writer.addInclude(([GLC.RuntimeModuleIdentifier(), "statecharts_core"]))
         self.writer.addInclude((["python_sccd.python_sccd_runtime.statecharts_core"]))
         self.writer.addInclude((["sccd.runtime.statecharts_core"]))
-        self.writer.addInclude((["colors"]))
+        self.writer.addInclude((["imports.colors"]))
 
         #self.writer.addInclude((["sccd.compiler.utils"]))
         self.writer.addRawCode("import argparse")
@@ -452,7 +459,7 @@ class GenericGenerator(Visitor):
         self.writer.beginMethod("setSimulationSpeed")
         self.writer.beginMethodBody()
         self.writer.addVSpace()
-        file = open("argsParser.py").read()
+        file = open("imports/argsParser.py").read()
         self.writer.addRawCode(file)
         self.writer.endMethodBody()
         self.writer.endMethod()
@@ -837,7 +844,6 @@ class GenericGenerator(Visitor):
         for (i, s) in enumerate(statechart.composites + statechart.basics): #+ statechart.histories
             if not s.is_root:
                 if s.enter_action.action or s.has_timers:
-                    print(s.new_full_name)
                     s.enter_action.accept(self)
                 if s.exit_action.action or s.has_timers:
                     s.exit_action.accept(self)
@@ -2354,7 +2360,7 @@ class GenericGenerator(Visitor):
         self.writer.beginIf(GLC.SelfProperty("firstTime"))
         self.writer.addAssignment(GLC.SelfProperty("firstTime"), "False")
         self.writer.endIf()
-        file = open("help.py").read()
+        file = open("imports/help.py").read()
         self.writer.addRawCode(file)
         self.writer.add(GLC.FunctionCall(GLC.SelfProperty("addTimer"), [str(self.numberOfAfterEvents-1), "0"]))
         self.writer.endMethodBody()
@@ -2384,7 +2390,7 @@ class GenericGenerator(Visitor):
         self.writer.beginMethod("saveExecutionTrace")
         self.writer.addFormalParameter("outputName")
         self.writer.beginMethodBody()
-        file = open("executionTracer.py").read()
+        file = open("imports/executionTracer.py").read()
         self.writer.addRawCode(file)
         self.writer.endMethodBody()
         self.writer.endMethod()

@@ -8,7 +8,7 @@ Model name:   Traffic_Lights
 
 from python_sccd.python_sccd_runtime.statecharts_core import *
 from sccd.runtime.statecharts_core import *
-from colors import *
+from imports.colors import *
 import argparse
 from sccd.compiler.utils import FileWriter
 import os

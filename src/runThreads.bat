@@ -1,1 +1,1 @@
-start cmd.exe /c python threadsCounter.py
+start cmd.exe /c python runner.py

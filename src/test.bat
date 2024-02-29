@@ -26,7 +26,7 @@ del trafficLights.py trafficLights.pyc
 
 @REM python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 phone.xml
 @REM python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 historyCounter.xml
-python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 trafficLights.xml
+python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 tests/trafficLights.xml
 
 
 @rem python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 0 train.xml
