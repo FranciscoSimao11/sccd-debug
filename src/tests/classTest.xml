@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<diagram author="Francisco Simoes" name="Counter">
+    <inport name="input" />
+    <outport name="output" />
+    <class name="MainApp" default="true">
+        <attribute name="counter" type="number" init-value="0"/>
+        <method name="MainApp">
+            <body>
+                <![CDATA[
+                
+                ]]>
+            </body>
+        </method>
+        <relationships>
+            <association name="chairs" class="Chair" />            
+        </relationships>
+        <scxml initial="state_A">
+            <state id="state_A">
+                <transition target="../state_B" after="10" />
+            </state>
+            <state id="state_B">
+                <transition target="../state_A" event="move" port="input" />
+            </state>
+        </scxml>
+    </class>
+    <class name="Chair">
+        <relationships>
+            <association name="parent" class="MainApp" min="1" max="1" />
+            <association name="legs" class="Leg" min="4" max="4" />
+        </relationships>
+        <scxml initial="state_A">
+            <state id="state_A">
+                <transition target="../state_B" after="10" />
+            </state>
+            <state id="state_B">
+                <transition target="../state_A" event="move" port="input" />
+            </state>
+        </scxml>
+    </class>
+    <class name="Leg">
+        <relationships>
+            <association name="parent" class="Chair" min="1" max="1" />
+        </relationships>
+        <scxml initial="state_A">
+            <state id="state_A">
+                <transition target="../state_B" after="10" />
+            </state>
+            <state id="state_B">
+                <transition target="../state_A" event="move" port="input" />
+            </state>
+        </scxml>
+    </class>
+</diagram>

@@ -1,0 +1,132 @@
+<?xml version="1.0" ?>
+<diagram author="Francisco Simoes" name="Traffic_Lights">
+    <inport name="input" />
+    <outport name="output" />
+    <class name="MainApp" default="true">
+        <relationships>
+            <association name="trafficlight" class="TrafficLight" />
+        </relationships>
+        <method name="MainApp">
+            <body>
+                <![CDATA[
+
+                ]]>
+            </body>
+        </method>
+        <scxml initial="initializing">
+            <state id="initializing">
+                <transition target="../creating">
+                    <raise scope="cd" event="create_instance">
+                        <parameter expr='"trafficlight"' />
+                        <parameter expr='"TrafficLight"' />
+                    </raise>
+                </transition>
+            </state>
+            <state id="creating">
+                <transition event="instance_created" target="../initialized">
+                    <parameter name="association_name" type="string"/>
+                    <raise scope="cd" event="start_instance">
+                        <parameter expr="association_name" />
+                    </raise>
+                    <raise scope="narrow" event="set_association_name" target="association_name">
+                        <parameter expr="association_name" />
+                    </raise>
+                </transition>
+            </state>
+            <state id="initialized">
+            </state>
+        </scxml>
+    </class>
+
+    <class name="TrafficLight">
+        <attribute name="light_color" type="string" init-value="'green'"/>
+        <relationships>
+        </relationships>
+        <method name="TrafficLight">
+            <body>
+                <![CDATA[
+
+                ]]>
+            </body>
+        </method>
+        <method name="clear">
+            <body>
+                self.light_color = "white"
+            </body>
+        </method>
+        <method name="setGreen">
+            <body>
+                self.light_color = "green"
+            </body>
+        </method>
+        <method name="setYellow">
+            <body>
+                self.light_color = "yellow"
+            </body>
+        </method>
+        <method name="setRed">
+            <body>
+                self.light_color = "red"
+            </body>
+        </method>
+        <scxml initial="on">
+            <state id="on" initial="normal">
+                <state id="normal" initial="red">
+                    <state id="red">
+                        <onentry>
+                            <script>
+                                self.setRed();
+                            </script>
+                        </onentry>
+                        <transition after='3' target='../green'/>
+                    </state>
+                    <state id="green">
+                        <onentry>
+                            <script>
+                                self.setGreen();
+                            </script>
+                        </onentry>
+                        <transition after='2' target='../yellow'/>
+                    </state>
+                    <state id="yellow">
+                        <onentry>
+                            <script>
+                                self.setYellow();
+                            </script>
+                        </onentry>
+                    <transition after='1' target='../red'/>
+                    </state>
+                    <transition event='police_interrupt' port='input' target='../interrupted'/>
+                    <history id="history"/>
+                </state>
+                <state id="interrupted" initial="yellow">
+                    <state id="yellow">
+                        <onentry>
+                            <script>
+                                self.setYellow();
+                            </script>
+                        </onentry>
+                        <transition after='.5' target='../black'/>
+                    </state>
+                    <state id="black">
+                        <onentry>
+                            <script>
+                                self.clear();
+                            </script>
+                        </onentry>
+                        <transition after='.5' target='../yellow'/>
+                    </state>
+                    <transition event='police_interrupt' port='input' target='../normal/history'/>
+                </state>
+                <transition event='quit' port='input' target='../off'/>
+            </state>
+            <state id="off">
+                <onentry>
+                    <script>
+                        self.clear();
+                    </script>
+                </onentry>
+            </state>
+        </scxml>
+    </class>
+</diagram>

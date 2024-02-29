@@ -4,8 +4,12 @@
 #import counterNoDebug as counter
 #import compositeCounter as counter
 #import historyCounter as counter
-import parallelCounter as counter
+#import parallelCounter as counter
 #import parallelCounterDiff as counter
+#import model as counter
+# import classTest as counter
+import trafficLights as counter
+#import phone as counter
 
 #import parallelCounterWithDebug as counter
 from sccd.runtime.statecharts_core import Event

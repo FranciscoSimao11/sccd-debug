@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<diagram author="Francisco Simoes" name="Composite Counter">
+<diagram author="Francisco Simoes" name="Counter">
     <inport name="input" />
     <outport name="output" />
     <class name="MainApp" default="true">
@@ -7,13 +7,14 @@
         <method name="MainApp">
             <body>
                 <![CDATA[
-
+                
                 ]]>
             </body>
         </method>
         <method name="increment_counter">
             <body>
                 self.counter = self.counter + 1
+                print ("counter: ", self.counter)
             </body>
         </method>
         <scxml initial="state_A">
@@ -24,7 +25,13 @@
                             self.increment_counter();
                         </script>
                     </onentry>
-                    <transition target="../state_A2" event="goA2" port="input" />
+                    <onexit>
+                        <script>
+                            self.increment_counter();
+                        </script>
+                    </onexit>
+                    <transition target="../state_A2" event="a2" port="input" />
+                    <transition target="../state_A2" after="10" />
                 </state>
                 <state id="state_A2">
                     <onentry>
@@ -32,10 +39,14 @@
                             self.increment_counter();
                         </script>
                     </onentry>
-                    <transition target="../state_A1" event="goA1" port="input" />
-                    <transition target="/state_B" event="goB" port="input" />
+                    <transition target="../state_A1" event="a1" port="input" />
+                    <transition target="/state_B" event="b" port="input" />
                 </state>
-                <history id="history"/>
+                <onexit>
+                    <script>
+                        self.increment_counter();
+                    </script>
+                </onexit>
             </state>
             <state id="state_B">
                 <onentry>
@@ -43,9 +54,7 @@
                         self.increment_counter();
                     </script>
                 </onentry>
-                <transition target="../state_A" event="goA" port="input" />
-                <transition target="../state_A/state_A1" event="goA1" port="input" />
-                <transition target="../state_A/history" event="back" port="input" />
+                <transition target="../state_A" event="move" port="input" />
             </state>
         </scxml>
     </class>
