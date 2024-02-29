@@ -76,7 +76,7 @@ class GenericGenerator(Visitor):
         #self.writer.addInclude(([GLC.RuntimeModuleIdentifier(), "statecharts_core"]))
         self.writer.addInclude((["python_sccd.python_sccd_runtime.statecharts_core"]))
         self.writer.addInclude((["sccd.runtime.statecharts_core"]))
-        self.writer.addInclude((["imports.colors"]))
+        self.writer.addInclude((["python_sccd.python_sccd_runtime.colors"]))
 
         #self.writer.addInclude((["sccd.compiler.utils"]))
         self.writer.addRawCode("import argparse")

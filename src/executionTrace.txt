@@ -1,0 +1,14 @@
+Execution Info
+
+Total Simulation Time: 2082.0 ms (includes Debug Time)
+Execution Time: 2082.0 ms
+Total Debug Time: 0.0 ms
+
+Events
+0. Timestamp: 0; Name: start;  Attributes: []
+1. Timestamp: 0; Name: entry: /initializing;  Attributes: []
+2. Timestamp: 0; Name: exit: /initializing;  Attributes: []
+3. Timestamp: 0; Name: entry: /creating;  Attributes: []
+4. Timestamp: 0; Name: exit: /creating - instance_created;  Attributes: []
+5. Timestamp: 0; Name: entry: /initialized;  Attributes: []
+6. Timestamp: 2082; Name: exit: /initialized - stop;  Attributes: []
