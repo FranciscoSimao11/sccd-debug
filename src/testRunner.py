@@ -1,4 +1,4 @@
-import phone as target
+import historyCounter as target
 from sccd.runtime.statecharts_core import Event
 import threading
 

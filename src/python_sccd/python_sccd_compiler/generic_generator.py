@@ -82,6 +82,8 @@ class GenericGenerator(Visitor):
         self.writer.addRawCode("import argparse")
         self.writer.addRawCode("from sccd.compiler.utils import FileWriter")
         self.writer.addRawCode("import os")
+        self.writer.addRawCode("import inspect")
+        
        # self.writer.addRawCode("from colors import *")
 
         #from python_sccd.python_sccd_runtime.statecharts_core import *
@@ -1736,6 +1738,52 @@ class GenericGenerator(Visitor):
             )
         )
 
+        self.writer.addVSpace()
+
+        # debug to final
+        debugToFinal = "%s_to_%s" % (debugName[1:], finalName[1:])
+        self.writer.addComment(debugName + " to "+ finalName)      
+        self.writer.addAssignment(
+                GLC.LocalVariableDeclaration(debugToFinal),
+                GLC.NewExpression(
+                    "Transition",
+                    [
+                        GLC.SelfExpression(),
+                        GLC.MapIndexedExpression(
+                            GLC.SelfProperty("states"),
+                            GLC.String(debugName),
+                        ),
+                        GLC.ArrayExpression(
+                            [
+                                GLC.MapIndexedExpression(
+                                    GLC.SelfProperty("states"),
+                                    GLC.String(finalName)
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )
+        self.writer.add(
+            GLC.FunctionCall(
+                GLC.Property(debugToFinal,"setTrigger"),[GLC.NewExpression("Event", [GLC.String("stop")])])
+                        )
+   
+        self.writer.add(
+            GLC.FunctionCall(
+                GLC.Property(
+                    GLC.MapIndexedExpression(
+                            GLC.SelfProperty("states"),
+                            GLC.String(debugName),
+                        ),
+                "addTransition"), 
+                [debugToFinal]
+            )
+        )
+        self.writer.addAssignment(GLC.SelfProperty("debugToFinal"), debugToFinal)
+
+        self.writer.addVSpace()
+
 
         for s in statechart.states:
             # if s.parent != None:
@@ -2340,6 +2388,18 @@ class GenericGenerator(Visitor):
 
         self.writer.endForLoopIterateArray()
 
+        self.writer.beginIf(
+            GLC.DifferentExpression(
+                GLC.Property( 
+                GLC.SelfProperty("debugToFinal"),
+                "enabled_event"),
+            GLC.NoneExpression()))
+        
+        self.writer.addAssignment("event", GLC.String("stop"))
+        self.createTracingEvent()
+
+        self.writer.endIf()
+
         self.writer.endMethodBody()
         self.writer.endMethod()
 
@@ -2600,8 +2660,9 @@ class GenericGenerator(Visitor):
         #                                         GLC.Property("colors", "fg"), "green"),
         #                                         GLC.String("Available Transition Options:")), 
         #                                         GLC.Property("colors", "reset"))
+        self.writer.addRawCode("guard = ((inspect.getsourcelines(chosen.guard)[0][1].split('return')[1]).lstrip())[:-1] if chosen.guard != None else chosen.guard")
 
-        self.writer.addRawCode('print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" which has a duration of " + colors.fg.pink + "{}" + colors.fg.lightgrey +" seconds and the guard condition " + colors.fg.pink + "{}" + colors.reset).format(attrs, lowest, chosen.guard))')
+        self.writer.addRawCode('print((colors.fg.lightgreen + "[time-based]" + colors.fg.lightgrey +" type " + colors.fg.pink +"step" + colors.fg.lightgrey + " to skip the transition to "+ colors.fg.cyan +"{}" + colors.fg.lightgrey +" which has a duration of " + colors.fg.pink + "{}" + colors.fg.lightgrey +" seconds and the guard condition " + colors.fg.pink + "{}" + colors.reset).format(attrs, lowest, guard))')
 
         self.writer.endIf()
 
@@ -2645,9 +2706,10 @@ class GenericGenerator(Visitor):
 
         #friendly_name
         self.writer.addRawCode("attrs = [s.name for s in t.targets]")
+        self.writer.addRawCode("guard = ((inspect.getsourcelines(t.guard)[0][1].split('return')[1]).lstrip())[:-1] if t.guard != None else t.guard")
         #self.writer.addRawCode('print("[event-based] type {} to move to {} ".format(name, attrs))')
 
-        self.writer.addRawCode('print((colors.fg.lightgreen + "[event-based]"  + colors.fg.lightgrey +" type " + colors.fg.pink +"{}"+ colors.fg.lightgrey + " to perform the transition to "+ colors.fg.cyan + "{}" + colors.fg.lightgrey + " with the guard condition " + colors.fg.pink + "{}"+ colors.reset).format(t.trigger.name, attrs, t.guard))')
+        self.writer.addRawCode('print((colors.fg.lightgreen + "[event-based]"  + colors.fg.lightgrey +" type " + colors.fg.pink +"{}"+ colors.fg.lightgrey + " to perform the transition to "+ colors.fg.cyan + "{}" + colors.fg.lightgrey + " with the guard condition " + colors.fg.pink + "{}"+ colors.reset).format(t.trigger.name, attrs, guard))')
         # self.writer.addAssignment("i", GLC.AdditionExpression("i", "1"))
         self.writer.endForLoopIterateArray()
 

@@ -23,7 +23,7 @@
         <scxml initial="powered_off">
             <state id="powered_off" initial="not_charging">
                 <state id="not_charging">
-                    <transition target="/powered_on"  event="press_power_button" port="input"/>
+                    <transition target="/powered_on"  event="press_power_button" port="input" cond="self.battery >= self.min_battery"/>
                     <transition target="../charging" event="plug_charger" port="input"/>
                 </state>
                 <state id="charging">
@@ -32,15 +32,15 @@
                             self.charge_battery()
                         </script>
                     </onentry>
-                    <transition target="/powered_on/history" event="press_power_button" port="input"/>
+                    <transition target="/powered_on" event="press_power_button" port="input" cond="self.battery >= self.min_battery"/>
                     <transition target="../not_charging" event="unplug_charger" port="input"/>
-                    <transition target="." after="10"/>
+                    <transition target="." after="15" cond="self.max_battery > self.battery"/>
+                    <!-- <transition target="." after="15"/> -->
                 </state>
             </state>
             <parallel id="powered_on">
                 <state id="charge" initial ="not_charging">
                     <state id="not_charging">
-                        <!-- <transition target="/powered_off/not_charging" event="press_power_button" port="input"/> -->
                         <transition target="../charging" event="plug_charger" port="input"/>
                     </state>
                     <state id="charging">
@@ -49,16 +49,15 @@
                                 self.charge_battery()
                             </script>
                         </onentry>
-                        <!-- <transition target="/powered_off/charging" event="press_power_button" port="input"/> -->
                         <transition target="../not_charging" event="unplug_charger" port="input"/>
-                        <transition target="." after="10"/>
+                        <transition target="." after="15" cond="self.max_battery > self.battery"/>
+                        <!-- <transition target="." after="15"/> -->
                     </state>
                 </state>
                 <state id="apps" initial="homescreen">
                     <state id="homescreen">
                         <transition target="../app_a" event="go_app_a" port="input"/>
                         <transition target="../app_b" event="go_app_b" port="input"/>
-                        <!-- <transition target="../history" event="history" port="input"/> -->
                     </state>
                     <state id="app_a">
                         <transition target="../homescreen" event="go_home" port="input"/>
@@ -67,7 +66,6 @@
                         <transition target="../homescreen" event="go_home" port="input"/>
                     </state>
                 </state>
-                <!-- <history id="history" type="deep"/> -->
                 <transition target="/powered_off" event="press_power_button" port="input"/>
             </parallel>
         </scxml>
