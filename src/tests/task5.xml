@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<diagram author="Francisco Simoes" name="Task5">
+    <top>
+        from time import sleep
+    </top>
+    <inport name="input" />
+    <outport name="output" />
+    <class name="MainApp" default="true">
+        <attribute name="x" type="number" init-value="3"/>
+        <method name="MainApp">
+            <body>
+                <![CDATA[
+
+                ]]>
+            </body>
+        </method>
+        <method name="increment">
+            <body>
+                    self.x = self.x + 1
+            </body>
+        </method>
+        <method name="decrement">
+            <body>
+                    self.x = self.x - 1
+            </body>
+        </method>
+        <method name="divideBy2">
+            <body>
+                    self.x = self.x / 2
+            </body>
+        </method>
+        <method name="multiplyBy2">
+            <body>
+                    self.x = self.x * 2
+            </body>
+        </method>
+        <scxml initial="A">
+            <state id="A" initial="B">
+                <onentry>
+                    <script>
+                        self.increment()
+                    </script>
+                </onentry>
+                <onexit>
+                    <script>
+                        self.decrement()
+                    </script>
+                </onexit>
+                <state id="B">
+                    <onentry>
+                        <script>
+                            self.divideBy2()
+                        </script>
+                    </onentry>
+                    <onexit>
+                        <script>
+                            self.increment()
+                            self.increment()
+                            self.increment()
+                        </script>
+                    </onexit>
+                    <transition target="." event="e1" port="input">
+                        <script>
+                            self.decrement()
+                        </script>
+                    </transition>
+                    <transition target="../C" event="e2" port="input" >
+                        <script>
+                            self.multiplyBy2()
+                        </script>
+                    </transition>
+                </state>
+                <state id="C">
+                    <transition target="."  event="e4" port="input">
+                        <script>
+                            self.increment()
+                        </script>
+                    </transition>
+                    <transition target="/D"  event="e5" port="input"/>
+                    <transition target="../B"  event="e3" port="input"/>
+                </state>
+                <transition target="." event="e6" port="input"/>
+            </state>
+            <state id="D">
+                <onentry>
+                    <script>
+                        self.increment()
+                    </script>
+                </onentry>
+            </state>
+        </scxml>
+    </class>
+</diagram>
