@@ -1,9 +1,12 @@
 currDir = os.getcwd()
 flag = False
+biggestSize = 0
 for entry in os.listdir(currDir):
-    if os.path.isfile(os.path.join(currDir, entry)) and entry == outputName + ".txt":
-        outputName = outputName + "_1" + ".txt"
+    if os.path.isfile(os.path.join(currDir, entry)) and (outputName) in entry and len(entry) > biggestSize:
+        outputName = entry[:-4] + "_1" + ".txt"
         flag = True
+        biggestSize = len(entry)
+        
 if not flag:
     outputName = outputName + ".txt"
 
