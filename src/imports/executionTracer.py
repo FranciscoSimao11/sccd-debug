@@ -1,7 +1,11 @@
 currDir = os.getcwd()
+flag = False
 for entry in os.listdir(currDir):
-    if os.path.isfile(os.path.join(currDir, entry)) and entry == outputName:
-        outputName = outputName + "_1"
+    if os.path.isfile(os.path.join(currDir, entry)) and entry == outputName + ".txt":
+        outputName = outputName + "_1" + ".txt"
+        flag = True
+if not flag:
+    outputName = outputName + ".txt"
 
 simTime = "Total Simulation Time: " + str(float(self.getSimulatedTime())) + " ms (includes Debug Time)"
 exTime = "Execution Time: " + str(self.executionTime) + " ms"

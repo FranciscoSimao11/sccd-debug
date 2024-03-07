@@ -2407,7 +2407,7 @@ class GenericGenerator(Visitor):
         #create enter debug state
         self.writer.beginMethod("_" + finalName[1:] + "_enter")
         self.writer.beginMethodBody()
-        self.writer.addAssignment("outputName", GLC.String("executionTrace.txt"))
+        self.writer.addAssignment("outputName", GLC.String("executionTrace"))
         self.writer.add(GLC.FunctionCall(GLC.Property(GLC.SelfProperty("controller"), "stop"), []))
         self.writer.add(GLC.FunctionCall(GLC.SelfProperty("saveExecutionTrace"), ["outputName"]))
         self.writer.add(GLC.FunctionCall("exit", ["1"]))
@@ -2720,7 +2720,7 @@ class GenericGenerator(Visitor):
         stateName = parent_node.new_full_name
     
         #timerIndex = timerIndex + len(self.breakpoints['states'])
-        timerIndex = timerIndexBase
+        timerIndex = timerIndexBase + 1
         for k,v in self.breakpoints['variables'].items():
             varName = k
             valueThreshold = v

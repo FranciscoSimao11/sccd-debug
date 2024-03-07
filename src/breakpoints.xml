@@ -1,8 +1,6 @@
 <?xml version="1.0" ?>
 <breakpointsList>
     <!-- <breakpoint variable="counter" value="5" /> -->
-    <!-- <breakpoint state="/state_B" />
-    <breakpoint timestamp="10" />
-    <breakpoint timestamp="5" />
-     -->
+    <!-- <breakpoint state="/state_B" /> -->
+    <!-- <breakpoint timestamp="10" /> -->
 </breakpointsList>
