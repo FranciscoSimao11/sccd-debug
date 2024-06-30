@@ -1,5 +1,5 @@
 python setup.py install --user
-python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 tests/historyCounter.xml
+python -m python_sccd.python_sccd_compiler.sccdc -p threads -l python -d 1 tests/counterMultipleOptions.xml
 start cmd.exe /c python testRunner.py -s 0 -f 1
 
 @REM @REM del counter.py counter.pyc timer.py timer.pyc compositeCounter.py compositeCounter.pyc historyCounter.py historyCounter.pyc parallelCounter.py parallelCounter.pyc counterScripts.pyc counterScripts.py counterMultipleOptions.pyc counterMultipleOptions.py

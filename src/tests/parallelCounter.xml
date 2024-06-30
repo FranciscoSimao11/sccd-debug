@@ -55,14 +55,6 @@
                     </state>
                 </state>
             </parallel>
-            <state id="state_C">
-                <onentry>
-                    <script>
-                        self.increment_counter();
-                    </script>
-                </onentry>
-                <transition target="../parallel" event="moveParallel" port="input" />
-            </state>
         </scxml>
     </class>
 </diagram>

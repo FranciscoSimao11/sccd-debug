@@ -1166,7 +1166,7 @@ class GenericGenerator(Visitor):
             self.writer.beginIf(GLC.DifferentExpression(GLC.Property("b", "enabled_event"), GLC.NoneExpression()))
             self.writer.addAssignment("found", GLC.TrueExpression())
             self.writer.add(GLC.RawCode("timerIndex = int(b.enabled_event.name[1:2])"))
-            self.writer.addAssignment("startingIndex", "2")
+            self.writer.addAssignment("startingIndex", "3")
             self.writer.addAssignment(
                 GLC.ArrayIndexedExpression(
                     GLC.SelfProperty("expiredTimestamps"),
@@ -2720,7 +2720,7 @@ class GenericGenerator(Visitor):
         stateName = parent_node.new_full_name
     
         #timerIndex = timerIndex + len(self.breakpoints['states'])
-        timerIndex = timerIndexBase + 1
+        timerIndex = timerIndexBase # +1?
         for k,v in self.breakpoints['variables'].items():
             varName = k
             valueThreshold = v

@@ -35,7 +35,6 @@
                     <transition target="/powered_on" event="press_power_button" port="input" cond="self.battery >= self.min_battery"/>
                     <transition target="../not_charging" event="unplug_charger" port="input"/>
                     <transition target="." after="15" cond="self.max_battery > self.battery"/>
-                    <!-- <transition target="." after="15"/> -->
                 </state>
             </state>
             <parallel id="powered_on">
@@ -51,7 +50,6 @@
                         </onentry>
                         <transition target="../not_charging" event="unplug_charger" port="input"/>
                         <transition target="." after="15" cond="self.max_battery > self.battery"/>
-                        <!-- <transition target="." after="15"/> -->
                     </state>
                 </state>
                 <state id="apps" initial="homescreen">
