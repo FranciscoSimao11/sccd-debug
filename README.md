@@ -3,9 +3,9 @@ Statecharts and Class Diagram Compiler
 
 How to cite this work
 -------------
-Francisco Simões, Miguel Goulão, Vasco Amaral, Joeri Exelmans and Hans Vangheluwe, "SCCD Debugger: a Debugger for Statecharts and Class Diagrams". ACM/IEEE 27th International Conference on Model Driven Engineering Languages and Systems (MODELS Companion '24), September 22--27, 2024, Linz, Austria, DOI: 10.1145/3652620.3687792
+Francisco Simões, Miguel Goulão, Vasco Amaral, Joeri Exelmans and Hans Vangheluwe, "SCCD Debugger: a Debugger for Statecharts and Class Diagrams". ACM/IEEE 27th International Conference on Model Driven Engineering Languages and Systems (MODELS Companion '24), September 22--27, 2024, Linz, Austria, DOI: [10.1145/3652620.3687792](https://doi.org/10.1145/3652620.3687792)
 
-Master Thesis: Debugging Statecharts Extended With Class Diagrams; Francisco Simões -> Available on the repository files, link available soon
+Francisco Simões. 2024. [Debugging Statecharts Extended with Class Diagrams.](./Dissertacao_Francisco_Simoes.pdf) Master’s thesis. Faculdade de Ciências e Tecnologia, Universidade Nova de Lisboa
 
 Installation
 -------------
