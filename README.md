@@ -1,10 +1,11 @@
 Statecharts and Class Diagram Compiler
 ======================================
+
 How to cite this work
 -------------
-SCCD Debugger: a Debugger for Statecharts and Class Diagrams -> https://doi.org/10.1145/3652620.3687792
--------------
-Master Thesis: Debugging Statecharts Extended With Class Diagrams -> Available on the repository files, link available soon
+SCCD Debugger: a Debugger for Statecharts and Class Diagrams; Francisco Simões, Miguel Goulão, Vasco Amaral, Joeri Exelmans, Hans Vangheluwe; MODELS 2024; https://doi.org/10.1145/3652620.3687792
+
+Master Thesis: Debugging Statecharts Extended With Class Diagrams; Francisco Simões -> Available on the repository files, link available soon
 
 Installation
 -------------
