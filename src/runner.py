@@ -1,4 +1,4 @@
-import counterMultipleOptions as target
+import phone as target
 from sccd.runtime.statecharts_core import Event
 import threading
 

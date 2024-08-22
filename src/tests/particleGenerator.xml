@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+<diagram author="Francisco Simoes" name="ParticleGenerator">
+    <inport name="input" />
+    <outport name="output" />
+    <class name="ParticleGenerator" default="true">
+        <!-- <attribute name="d" type="number" init-value="0"/> -->
+        <method name="MainApp">
+            <body>
+                <![CDATA[
+                
+                ]]>
+            </body>
+        </method>
+        <method name="create_particle">
+            <body>
+
+            </body>
+        </method>
+        <method name="destroy_particle">
+            <body>
+                
+            </body>
+        </method>
+        <relationships>
+            <association name="particles" class="Particle" />            
+        </relationships>
+        <scxml initial="state_initial">
+            <state id="state_initial">
+                <transition target="../state_create" after="10" />
+            </state>
+            <state id="state_create">
+                <onentry>
+                    <script>
+                        self.create_particle();
+                    </script>
+                </onentry>
+                <transition target="../state_destroy" after="5" />
+            </state>
+            <state id="state_destroy">
+                <onentry>
+                    <script>
+                        self.destroy_particle();
+                    </script>
+                </onentry>
+                <transition target="../state_create" after="10" />
+            </state>
+        </scxml>
+    </class>
+    <class name="Particle">
+        <relationships>
+            <association name="parent" class="ParticleGenerator" min="1" max="1" />
+        </relationships>
+        <scxml initial="state_alive">
+            <state id="state_alive">
+                <transition target="../state_destroyed" after="5" />
+            </state>
+            <state id="state_destroyed">
+                <!-- <transition target="../state_alive" event="move" port="input" /> -->
+            </state>
+        </scxml>
+    </class>
+</diagram>

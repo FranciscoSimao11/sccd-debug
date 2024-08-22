@@ -14,6 +14,8 @@ from sccd.compiler.utils import FileWriter
 import os
 import inspect
 from time import sleep
+import Tkinter as tk
+
 
 # package "Phone"
 
@@ -38,6 +40,13 @@ class Phone(RuntimeClassBase):
         self.debugging = False
         self.expiredTimestamps = []
         
+        self.coordsCollection = {} #[x1, y1, x2, y2]
+        self.max_width = 1400
+        self.window = tk.Tk()
+        self.canvas = tk.Canvas(None, bg="white", width=self.max_width, height=800)
+        self.canvas.pack()
+
+
         # set execution speed
         self.setSimulationSpeed()
         
@@ -87,7 +96,48 @@ class Phone(RuntimeClassBase):
     def charge_battery(self):
         self.battery = self.battery + 1
     
-    
+    def UIcreateState(self, name, coords):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black",fill ="white",width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, (coords[1] + coords[3])/2, text=name)
+        self.canvas.pack()
+
+    def UIcreateOuterState(self, name, coords, labelY):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black",fill ="white",width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, labelY, text=name)
+        self.canvas.pack()
+
+    def UIcreateInitialState(self, coordsCircle, coordsArrow):
+        self.canvas.create_oval(coordsCircle[0], coordsCircle[1], coordsCircle[2], coordsCircle[3], outline ="black",fill ="black",width = 2)
+        self.canvas.create_line(coordsArrow[0], coordsArrow[1], coordsArrow[2], coordsArrow[3], arrow=tk.LAST) 
+        self.canvas.pack()
+
+    def UIcreateArrow(self, name, coordsArrow):
+        self.canvas.create_line(coordsArrow[0], coordsArrow[1], coordsArrow[2], coordsArrow[3], arrow=tk.LAST) 
+        self.canvas.create_text((coordsArrow[0] + coordsArrow[2])/2, (coordsArrow[1] + coordsArrow[3])/2 - 10, text=name)
+        self.canvas.pack()
+
+    def UIcreateSelfIncomingArrow(self, name, coordsArrow):
+        self.canvas.create_line(coordsArrow[0], coordsArrow[1], coordsArrow[2], coordsArrow[3]) 
+        self.canvas.create_line(coordsArrow[2], coordsArrow[3], coordsArrow[4], coordsArrow[5]) 
+        self.canvas.create_line(coordsArrow[4], coordsArrow[5], coordsArrow[6], coordsArrow[7], arrow=tk.LAST) 
+        self.canvas.create_text((coordsArrow[2] + coordsArrow[4])/2, (coordsArrow[3] + coordsArrow[5])/2 - 10, text=name)
+        self.canvas.pack()
+
+    def UIcreateDashedLine(self, coords):
+        self.canvas.create_line(coords[0], coords[1], coords[2], coords[3], dash=(5,1)) 
+        self.canvas.pack()
+
+    def UIenterState(self, name, coords):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black", fill ="orange", width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, (coords[1] + coords[3])/2, text=name)
+        self.canvas.pack()
+ 
+    def UIleaveState(self, name, coords):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black", fill ="white", width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, (coords[1] + coords[3])/2, text=name)
+        self.canvas.pack()
+
+
     # builds Statechart structure
     def build_statechart_structure(self):
         
@@ -98,57 +148,127 @@ class Phone(RuntimeClassBase):
         self.states["/powered_off"] = State(1, "/powered_off", self)
         self.states["/powered_off"].setEnter(self._powered_off_enter)
         self.states["/powered_off"].setExit(self._powered_off_exit)
-        
+        coordsCircle = [40, 200, 60, 220]
+        coordsArrow = [50, 210, 100, 210]
+        self.UIcreateInitialState(coordsCircle, coordsArrow) #arrow coords are on the circle center
+        coordsOuterState = [100, 20, 620, 420]
+        self.UIcreateOuterState("/powered_off", coordsOuterState, 30)
+
         # state /powered_off/not_charging
         self.states["/powered_off/not_charging"] = State(2, "/powered_off/not_charging", self)
         self.states["/powered_off/not_charging"].setEnter(self._powered_off_not_charging_enter)
         self.states["/powered_off/not_charging"].setExit(self._powered_off_not_charging_exit)
-        
+        coordsCircle = [120, 200, 140, 220]
+        coordsArrow = [130, 210, 170, 210]
+        self.UIcreateInitialState(coordsCircle, coordsArrow)
+        coordsState = [170, 160, 270, 260]
+        self.UIcreateState("/not_charging", coordsState)
+        self.coordsCollection["/powered_off/not_charging"] = coordsState
+        arrowCoords = [270, 180, 470, 180]
+        self.UIcreateArrow("plug_charger", arrowCoords)
+        arrowCoords = [220, 260, 700, 600]
+        self.UIcreateArrow("press_power_button", arrowCoords)
+
         # state /powered_off/charging
         self.states["/powered_off/charging"] = State(3, "/powered_off/charging", self)
         self.states["/powered_off/charging"].setEnter(self._powered_off_charging_enter)
         self.states["/powered_off/charging"].setExit(self._powered_off_charging_exit)
-        
+        coordsState = [470, 160, 570, 260]
+        self.UIcreateState("/charging", coordsState)
+        self.coordsCollection["/powered_off/charging"] = coordsState
+        arrowCoords = [470, 240, 270, 240]
+        self.UIcreateArrow("unplug_charger", arrowCoords)
+        arrowCoords = [520, 260, 700, 400]
+        self.UIcreateArrow("press_power_button", arrowCoords)
+        arrowCoords = [550, 160, 550, 100, 490, 100, 490, 160]
+        self.UIcreateSelfIncomingArrow("after 15s", arrowCoords)
+
         # state /powered_on
         self.states["/powered_on"] = ParallelState(4, "/powered_on", self)
         self.states["/powered_on"].setEnter(self._powered_on_enter)
         self.states["/powered_on"].setExit(self._powered_on_exit)
-        
+        coordsOuterState = [700, 20, 1300, 750]
+        self.UIcreateOuterState("/powered_on", coordsOuterState, 30)
+        coordsDashedLine = [700, 370, 1300, 370]
+        self.UIcreateDashedLine(coordsDashedLine)
+        arrowCoords = [700, 700, 300, 420]
+        self.UIcreateArrow("press_power_button", arrowCoords)
+
         # state /powered_on/charge
         self.states["/powered_on/charge"] = State(5, "/powered_on/charge", self)
         self.states["/powered_on/charge"].setEnter(self._powered_on_charge_enter)
         self.states["/powered_on/charge"].setExit(self._powered_on_charge_exit)
-        
+        coordsOuterState = [720, 45, 1280, 350]
+        self.UIcreateOuterState("/charge", coordsOuterState, 55)
+
         # state /powered_on/charge/not_charging
         self.states["/powered_on/charge/not_charging"] = State(6, "/powered_on/charge/not_charging", self)
         self.states["/powered_on/charge/not_charging"].setEnter(self._powered_on_charge_not_charging_enter)
         self.states["/powered_on/charge/not_charging"].setExit(self._powered_on_charge_not_charging_exit)
-        
+        coordsCircle = [740, 200, 760, 220]
+        coordsArrow = [750, 210, 800, 210]
+        self.UIcreateInitialState(coordsCircle, coordsArrow)
+        coordsState = [800, 160, 900, 260]
+        self.UIcreateState("/not_charging", coordsState)
+        self.coordsCollection["/powered_on/charge/not_charging"] = coordsState
+        arrowCoords = [900, 180, 1100, 180]
+        self.UIcreateArrow("plug_charger", arrowCoords)
+
+
         # state /powered_on/charge/charging
         self.states["/powered_on/charge/charging"] = State(7, "/powered_on/charge/charging", self)
         self.states["/powered_on/charge/charging"].setEnter(self._powered_on_charge_charging_enter)
         self.states["/powered_on/charge/charging"].setExit(self._powered_on_charge_charging_exit)
-        
+        coordsState = [1100, 160, 1200, 260]
+        self.UIcreateState("/charging", coordsState)
+        self.coordsCollection["/powered_on/charge/charging"] = coordsState
+        arrowCoords = [1100, 240, 900, 240]
+        self.UIcreateArrow("unplug_charger", arrowCoords)
+        arrowCoords = [1180, 160, 1180, 100, 1120, 100, 1120, 160]
+        self.UIcreateSelfIncomingArrow("after 15s", arrowCoords)
+
         # state /powered_on/apps
         self.states["/powered_on/apps"] = State(8, "/powered_on/apps", self)
         self.states["/powered_on/apps"].setEnter(self._powered_on_apps_enter)
         self.states["/powered_on/apps"].setExit(self._powered_on_apps_exit)
+        coordsOuterState = [720, 390, 1280, 730]
+        self.UIcreateOuterState("/apps", coordsOuterState, 400)
         
         # state /powered_on/apps/homescreen
         self.states["/powered_on/apps/homescreen"] = State(9, "/powered_on/apps/homescreen", self)
         self.states["/powered_on/apps/homescreen"].setEnter(self._powered_on_apps_homescreen_enter)
         self.states["/powered_on/apps/homescreen"].setExit(self._powered_on_apps_homescreen_exit)
-        
+        coordsCircle = [990, 420, 1010, 440]
+        coordsArrow = [1000, 430, 1000, 480]
+        self.UIcreateInitialState(coordsCircle, coordsArrow)
+        coordsState = [800, 480, 1200, 540]
+        self.UIcreateState("/homescreen", coordsState)
+        self.coordsCollection["/powered_on/apps/homescreen"] = coordsState
+        arrowCoords = [820, 540, 820, 600]
+        self.UIcreateArrow("go_app_a", arrowCoords)
+        arrowCoords = [1180, 540, 1180, 600]
+        self.UIcreateArrow("go_app_b", arrowCoords)
+
         # state /powered_on/apps/app_a
         self.states["/powered_on/apps/app_a"] = State(10, "/powered_on/apps/app_a", self)
         self.states["/powered_on/apps/app_a"].setEnter(self._powered_on_apps_app_a_enter)
         self.states["/powered_on/apps/app_a"].setExit(self._powered_on_apps_app_a_exit)
-        
+        coordsState = [800, 600, 950, 660]
+        self.UIcreateState("/app_a", coordsState)
+        self.coordsCollection["/powered_on/apps/app_a"] = coordsState
+        arrowCoords = [930, 600, 930, 540]
+        self.UIcreateArrow("go_home", arrowCoords)
+
         # state /powered_on/apps/app_b
         self.states["/powered_on/apps/app_b"] = State(11, "/powered_on/apps/app_b", self)
         self.states["/powered_on/apps/app_b"].setEnter(self._powered_on_apps_app_b_enter)
         self.states["/powered_on/apps/app_b"].setExit(self._powered_on_apps_app_b_exit)
-        
+        coordsState = [1050, 600, 1200, 660]
+        self.UIcreateState("/app_b", coordsState)
+        self.coordsCollection["/powered_on/apps/app_b"] = coordsState
+        arrowCoords = [1070, 600, 1070, 540]
+        self.UIcreateArrow("go_home", arrowCoords)
+
         # state /state_Debug
         self.states["/state_Debug"] = State(12, "/state_Debug", self)
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
@@ -1434,7 +1554,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_off"]:
@@ -1495,7 +1615,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on"]:
@@ -1554,7 +1674,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/charge"]:
@@ -1613,7 +1733,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/apps"]:
@@ -1644,6 +1764,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_off/not_charging"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/not_charging", self.coordsCollection["/powered_off/not_charging"])
         
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
@@ -1670,6 +1791,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_off_not_charging_exit(self):
+        self.UIleaveState("/not_charging", self.coordsCollection["/powered_off/not_charging"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -1685,7 +1807,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_off/not_charging"]:
@@ -1727,7 +1849,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_off/charging"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
-        
+        self.UIenterState("/charging", self.coordsCollection["/powered_off/charging"])
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
         
@@ -1763,6 +1885,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_off_charging_exit(self):
+        self.UIleaveState("/charging", self.coordsCollection["/powered_off/charging"])
         self.removeTimer(0)
         index = 3
         for et in self.expiredTimestamps:
@@ -1779,7 +1902,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_off/charging"]:
@@ -1821,6 +1944,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_on/charge/not_charging"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/not_charging", self.coordsCollection["/powered_on/charge/not_charging"])
         
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
@@ -1847,6 +1971,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_on_charge_not_charging_exit(self):
+        self.UIleaveState("/not_charging", self.coordsCollection["/powered_on/charge/not_charging"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -1862,7 +1987,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/charge/not_charging"]:
@@ -1904,6 +2029,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_on/charge/charging"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/charging", self.coordsCollection["/powered_on/charge/charging"])
         
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
@@ -1940,6 +2066,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_on_charge_charging_exit(self):
+        self.UIleaveState("/charging", self.coordsCollection["/powered_on/charge/charging"])
         self.removeTimer(1)
         index = 3
         for et in self.expiredTimestamps:
@@ -1956,7 +2083,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/charge/charging"]:
@@ -1998,6 +2125,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_on/apps/homescreen"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/homescreen", self.coordsCollection["/powered_on/apps/homescreen"])
         
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
@@ -2024,6 +2152,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_on_apps_homescreen_exit(self):
+        self.UIleaveState("/homescreen", self.coordsCollection["/powered_on/apps/homescreen"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -2039,7 +2168,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/apps/homescreen"]:
@@ -2081,6 +2210,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_on/apps/app_a"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/app_a", self.coordsCollection["/powered_on/apps/app_a"])
         
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
@@ -2107,6 +2237,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_on_apps_app_a_exit(self):
+        self.UIleaveState("/app_a", self.coordsCollection["/powered_on/apps/app_a"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -2122,7 +2253,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/apps/app_a"]:
@@ -2164,6 +2295,7 @@ class Phone(RuntimeClassBase):
         self.current_state = self.states["/powered_on/apps/app_b"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/app_b", self.coordsCollection["/powered_on/apps/app_b"])
         
         while (not self.didCalcs.empty()):
             self.didCalcs.get()
@@ -2190,6 +2322,7 @@ class Phone(RuntimeClassBase):
             self.print_prompt()
     
     def _powered_on_apps_app_b_exit(self):
+        self.UIleaveState("/app_b", self.coordsCollection["/powered_on/apps/app_b"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -2205,7 +2338,7 @@ class Phone(RuntimeClassBase):
             if b.enabled_event != None:
                 found = True
                 timerIndex = int(b.enabled_event.name[1:2])
-                startingIndex = 2
+                startingIndex = 3
                 self.expiredTimestamps[timerIndex - startingIndex] = True
         
         for b in self.genBreakpointTransitions["/powered_on/apps/app_b"]:
