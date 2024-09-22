@@ -13,6 +13,8 @@ import argparse
 from sccd.compiler.utils import FileWriter
 import os
 import inspect
+from time import sleep
+import Tkinter as tk
 
 # package "Counter"
 
@@ -38,6 +40,12 @@ class MainApp(RuntimeClassBase):
         self.expiredTimestamps = []
         self.expiredTimestamps.append(False)
         
+        self.coordsCollection = {} #[x1, y1, x2, y2]
+        self.max_width = 1400
+        self.window = tk.Tk()
+        self.canvas = tk.Canvas(None, bg="white", width=self.max_width, height=800)
+        self.canvas.pack()
+
         # set execution speed
         self.setSimulationSpeed()
         
@@ -86,7 +94,47 @@ class MainApp(RuntimeClassBase):
     def increment_counter(self):
         self.counter = self.counter + 1
     
-    
+    def UIcreateState(self, name, coords):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black",fill ="white",width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, (coords[1] + coords[3])/2, text=name)
+        self.canvas.pack()
+
+    def UIcreateOuterState(self, name, coords, labelY):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black",fill ="white",width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, labelY, text=name)
+        self.canvas.pack()
+
+    def UIcreateInitialState(self, coordsCircle, coordsArrow):
+        self.canvas.create_oval(coordsCircle[0], coordsCircle[1], coordsCircle[2], coordsCircle[3], outline ="black",fill ="black",width = 2)
+        self.canvas.create_line(coordsArrow[0], coordsArrow[1], coordsArrow[2], coordsArrow[3], arrow=tk.LAST) 
+        self.canvas.pack()
+
+    def UIcreateArrow(self, name, coordsArrow):
+        self.canvas.create_line(coordsArrow[0], coordsArrow[1], coordsArrow[2], coordsArrow[3], arrow=tk.LAST) 
+        self.canvas.create_text((coordsArrow[0] + coordsArrow[2])/2, (coordsArrow[1] + coordsArrow[3])/2 - 10, text=name)
+        self.canvas.pack()
+
+    def UIcreateSelfIncomingArrow(self, name, coordsArrow):
+        self.canvas.create_line(coordsArrow[0], coordsArrow[1], coordsArrow[2], coordsArrow[3]) 
+        self.canvas.create_line(coordsArrow[2], coordsArrow[3], coordsArrow[4], coordsArrow[5]) 
+        self.canvas.create_line(coordsArrow[4], coordsArrow[5], coordsArrow[6], coordsArrow[7], arrow=tk.LAST) 
+        self.canvas.create_text((coordsArrow[2] + coordsArrow[4])/2, (coordsArrow[3] + coordsArrow[5])/2 - 10, text=name)
+        self.canvas.pack()
+
+    def UIcreateDashedLine(self, coords):
+        self.canvas.create_line(coords[0], coords[1], coords[2], coords[3], dash=(5,1)) 
+        self.canvas.pack()
+
+    def UIenterState(self, name, coords):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black", fill ="orange", width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, (coords[1] + coords[3])/2, text=name)
+        self.canvas.pack()
+ 
+    def UIleaveState(self, name, coords):
+        self.canvas.create_rectangle(coords[0], coords[1], coords[2], coords[3], outline ="black", fill ="white", width = 2)
+        self.canvas.create_text((coords[0] + coords[2])/2, (coords[1] + coords[3])/2, text=name)
+        self.canvas.pack()
+
     # builds Statechart structure
     def build_statechart_structure(self):
         
@@ -97,22 +145,50 @@ class MainApp(RuntimeClassBase):
         self.states["/state_A"] = State(1, "/state_A", self)
         self.states["/state_A"].setEnter(self._state_A_enter)
         self.states["/state_A"].setExit(self._state_A_exit)
-        
+        coordsCircle = [40, 240, 60, 260]
+        coordsArrow = [50, 250, 150, 250]
+        self.UIcreateInitialState(coordsCircle, coordsArrow)
+        coordsState = [150, 150, 350, 350]
+        self.UIcreateState("/state_A", coordsState)
+        self.coordsCollection["/state_A"] = coordsState
+        arrowCoords = [350, 200, 550, 200]
+        self.UIcreateArrow("after 10s", arrowCoords)
+        arrowCoords = [550, 300, 350, 300]
+        self.UIcreateArrow("move", arrowCoords)
+
         # state /state_B
         self.states["/state_B"] = State(2, "/state_B", self)
         self.states["/state_B"].setEnter(self._state_B_enter)
         self.states["/state_B"].setExit(self._state_B_exit)
-        
+        coordsState = [550, 150, 750, 350]
+        self.UIcreateState("/state_B", coordsState)
+        self.coordsCollection["/state_B"] = coordsState
+
+
         # state /state_C
         self.states["/state_C"] = State(3, "/state_C", self)
         self.states["/state_C"].setEnter(self._state_C_enter)
         self.states["/state_C"].setExit(self._state_C_exit)
-        
+        coordsState = [150, 500, 350, 700]
+        self.UIcreateState("/state_C", coordsState)
+        self.coordsCollection["/state_C"] = coordsState
+        # arrowCoords = [350, 200, 550, 200]
+        # self.UIcreateArrow("after 20s", arrowCoords)
+        arrowCoords = [250, 500, 250, 350]
+        self.UIcreateArrow("move", arrowCoords)
+
         # state /state_D
         self.states["/state_D"] = State(4, "/state_D", self)
         self.states["/state_D"].setEnter(self._state_D_enter)
         self.states["/state_D"].setExit(self._state_D_exit)
-        
+        coordsState = [550, 500, 750, 700]
+        self.UIcreateState("/state_D", coordsState)
+        self.coordsCollection["/state_D"] = coordsState
+        arrowCoords = [575, 500, 350, 325]
+        self.UIcreateArrow("move", arrowCoords)
+        arrowCoords = [325, 350, 550, 525]
+        self.UIcreateArrow("d", arrowCoords)
+
         # state /state_Debug
         self.states["/state_Debug"] = State(5, "/state_Debug", self)
         self.states["/state_Debug"].setEnter(self._state_Debug_enter)
@@ -394,7 +470,8 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_A"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
-        
+        self.UIenterState("/state_A", self.coordsCollection["/state_A"])
+
         if not self.expiredTimestamps[0]:
             self.addTimer(3, 10 - (self.executionTime / 1000.0))
         while (not self.didCalcs.empty()):
@@ -437,6 +514,7 @@ class MainApp(RuntimeClassBase):
             self.print_prompt()
     
     def _state_A_exit(self):
+        self.UIleaveState("/state_A", self.coordsCollection["/state_A"])
         self.removeTimer(0)
         self.removeTimer(1)
         index = 3
@@ -496,6 +574,7 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_B"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/state_B", self.coordsCollection["/state_B"])
         
         if not self.expiredTimestamps[0]:
             self.addTimer(3, 10 - (self.executionTime / 1000.0))
@@ -527,6 +606,7 @@ class MainApp(RuntimeClassBase):
             self.print_prompt()
     
     def _state_B_exit(self):
+        self.UIleaveState("/state_B", self.coordsCollection["/state_B"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -584,6 +664,7 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_C"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
+        self.UIenterState("/state_C", self.coordsCollection["/state_C"])
         
         if not self.expiredTimestamps[0]:
             self.addTimer(3, 10 - (self.executionTime / 1000.0))
@@ -615,6 +696,7 @@ class MainApp(RuntimeClassBase):
             self.print_prompt()
     
     def _state_C_exit(self):
+        self.UIleaveState("/state_C", self.coordsCollection["/state_C"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
@@ -672,7 +754,8 @@ class MainApp(RuntimeClassBase):
         self.current_state = self.states["/state_D"]
         self.debugging = False
         self.startTime = self.getSimulatedTime()
-        
+        self.UIenterState("/state_D", self.coordsCollection["/state_D"])
+
         if not self.expiredTimestamps[0]:
             self.addTimer(3, 10 - (self.executionTime / 1000.0))
         while (not self.didCalcs.empty()):
@@ -704,6 +787,7 @@ class MainApp(RuntimeClassBase):
             self.print_prompt()
     
     def _state_D_exit(self):
+        self.UIleaveState("/state_D", self.coordsCollection["/state_D"])
         index = 3
         for et in self.expiredTimestamps:
             self.removeTimer(index)
